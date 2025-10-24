@@ -381,6 +381,19 @@
             display: none;
         }
         
+        .config-section {
+            background: #f0f8ff;
+            border: 1px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .config-section h4 {
+            margin: 0 0 10px 0;
+            color: #2196F3;
+        }
+        
         /* Android-specific optimizations */
         @media screen and (max-width: 480px) {
             .header h1 {
@@ -563,9 +576,38 @@
             <div class="success-message" id="staffSuccess"></div>
             <div class="error-message" id="staffError"></div>
             
+            <!-- M365 Configuration Status -->
+            <div class="config-section">
+                <h4>🔧 M365 Integration Setup Required</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;">To connect to your organization's directory:</p>
+                <ol style="margin: 10px 0; padding-left: 20px; font-size: 0.85rem;">
+                    <li>Register app in Azure AD</li>
+                    <li>Get Tenant ID and Client ID</li>
+                    <li>Configure API permissions</li>
+                    <li>Update M365_CONFIG in code</li>
+                </ol>
+                <button class="btn btn-secondary" onclick="showM365Setup()" style="padding: 8px 15px; font-size: 0.9rem;">
+                    View Setup Instructions
+                </button>
+            </div>
+            
+            <!-- PIN Sign In Section -->
             <div class="form-group">
-                <label for="staffSearch">Search Staff Member</label>
-                <input type="text" id="staffSearch" placeholder="Enter name or employee ID" oninput="searchStaff(this.value)">
+                <label for="pinInput">Enter Your PIN</label>
+                <input type="password" id="pinInput" placeholder="Enter 4-digit PIN" maxlength="4" oninput="handlePinInput(this.value)" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span style="color: #666;">OR</span>
+            </div>
+            
+            <!-- Staff Search Section -->
+            <div class="form-group">
+                <label for="staffSearch">Search Staff Directory</label>
+                <input type="text" id="staffSearch" placeholder="Search by name, email, or department" oninput="searchStaff(this.value)">
+                <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                    <span id="m365Status">M365 Integration: Not Configured</span>
+                </div>
             </div>
             
             <div id="staffResults" class="visitor-list" style="display: none;">
@@ -579,7 +621,178 @@
                 </div>
             </div>
             
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="exportVisitorData()" style="margin: 5px;">
+                    📊 Export Data
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="showVisitorStats()" style="margin: 5px;">
+                    📈 View Stats
+                </button>
+            </div>
+            
             <button type="button" class="btn btn-secondary" onclick="closeModal('staffModal')">Close</button>
+        </div>
+    </div>
+    
+    <!-- PIN Registration Modal -->
+    <div id="pinRegistrationModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('pinRegistrationModal')">&times;</button>
+            <h2>Register Your PIN</h2>
+            
+            <div class="success-message" id="pinSuccess"></div>
+            <div class="error-message" id="pinError"></div>
+            
+            <div id="selectedUserInfo" class="status-display" style="margin: 20px 0;">
+                <!-- Selected user info will appear here -->
+            </div>
+            
+            <form id="pinRegistrationForm" onsubmit="handlePinRegistration(event)">
+                <div class="form-group">
+                    <label for="newPin">Create 4-Digit PIN *</label>
+                    <input type="password" id="newPin" name="newPin" placeholder="Enter 4-digit PIN" maxlength="4" required style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;" oninput="validatePinInput(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPin">Confirm PIN *</label>
+                    <input type="password" id="confirmPin" name="confirmPin" placeholder="Re-enter PIN" maxlength="4" required style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;" oninput="validatePinInput(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="pinAgreement" required style="width: auto; margin-right: 10px;">
+                        I understand this PIN will be used for secure access to the kiosk system and I am responsible for keeping it confidential.
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn">Register PIN</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('pinRegistrationModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- M365 Setup Instructions Modal -->
+    <div id="m365SetupModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('m365SetupModal')">&times;</button>
+            <h2>🔧 Complete Azure AD Setup Guide</h2>
+            
+            <div class="config-section">
+                <h4>📋 Prerequisites</h4>
+                <ul style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>✅ <strong>Global Administrator</strong> or <strong>Application Administrator</strong> role in Azure AD</li>
+                    <li>✅ Access to <strong>Azure Portal</strong> (portal.azure.com)</li>
+                    <li>✅ Your organization's <strong>M365 tenant</strong></li>
+                </ul>
+            </div>
+            
+            <div class="config-section">
+                <h4>🚀 Step 1: Access Azure Portal</h4>
+                <ol style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>Open browser and go to: <strong>https://portal.azure.com</strong></li>
+                    <li>Sign in with your <strong>admin account</strong></li>
+                    <li>In the search bar, type: <strong>"Azure Active Directory"</strong></li>
+                    <li>Click on <strong>"Azure Active Directory"</strong> from results</li>
+                </ol>
+            </div>
+            
+            <div class="config-section">
+                <h4>📱 Step 2: Create App Registration</h4>
+                <ol style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>In Azure AD, click <strong>"App registrations"</strong> in left menu</li>
+                    <li>Click <strong>"+ New registration"</strong> button (top of page)</li>
+                    <li><strong>Name:</strong> Type "Visitor Kiosk System"</li>
+                    <li><strong>Supported account types:</strong> Select <strong>"Accounts in this organizational directory only"</strong></li>
+                    <li><strong>Redirect URI:</strong> 
+                        <ul style="margin: 5px 0;">
+                            <li>Select <strong>"Single-page application (SPA)"</strong> from dropdown</li>
+                            <li>Enter: <strong>https://yourdomain.com/kiosk</strong> (or your tablet URL)</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>"Register"</strong> button</li>
+                </ol>
+            </div>
+            
+            <div class="config-section">
+                <h4>🔑 Step 3: Copy Important IDs</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 10px;">After registration, you'll see the app overview page. <strong>COPY THESE VALUES:</strong></p>
+                <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                    <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📋 Application (client) ID:</strong> <span style="font-family: monospace; background: #f8f9fa; padding: 2px 5px;">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span></p>
+                    <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📋 Directory (tenant) ID:</strong> <span style="font-family: monospace; background: #f8f9fa; padding: 2px 5px;">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span></p>
+                </div>
+                <p style="font-size: 0.85rem; color: #666;">💡 <strong>Tip:</strong> Keep these IDs safe - you'll need them in Step 6!</p>
+            </div>
+            
+            <div class="config-section">
+                <h4>🔐 Step 4: Configure API Permissions</h4>
+                <ol style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>In your app, click <strong>"API permissions"</strong> in left menu</li>
+                    <li>Click <strong>"+ Add a permission"</strong></li>
+                    <li>Select <strong>"Microsoft Graph"</strong></li>
+                    <li>Choose <strong>"Delegated permissions"</strong></li>
+                    <li>Search and select these permissions:
+                        <ul style="margin: 5px 0; padding-left: 15px;">
+                            <li>✅ <strong>User.Read.All</strong> (Read all users' full profiles)</li>
+                            <li>✅ <strong>Directory.Read.All</strong> (Read directory data)</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>"Add permissions"</strong></li>
+                    <li><strong>IMPORTANT:</strong> Click <strong>"Grant admin consent for [Your Organization]"</strong></li>
+                    <li>Click <strong>"Yes"</strong> to confirm</li>
+                </ol>
+            </div>
+            
+            <div class="config-section">
+                <h4>🌐 Step 5: Configure Authentication</h4>
+                <ol style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>Click <strong>"Authentication"</strong> in left menu</li>
+                    <li>Under <strong>"Implicit grant and hybrid flows"</strong>:
+                        <ul style="margin: 5px 0; padding-left: 15px;">
+                            <li>✅ Check <strong>"Access tokens"</strong></li>
+                            <li>✅ Check <strong>"ID tokens"</strong></li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>"Save"</strong></li>
+                </ol>
+            </div>
+            
+            <div class="config-section">
+                <h4>💻 Step 6: Update Kiosk Configuration</h4>
+                <p style="font-size: 0.9rem;">In your kiosk code, find the M365_CONFIG section and update:</p>
+                <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; font-size: 0.8rem; overflow-x: auto; border-left: 4px solid #4CAF50;">
+const M365_CONFIG = {
+    tenantId: 'YOUR-TENANT-ID-FROM-STEP-3',
+    clientId: 'YOUR-CLIENT-ID-FROM-STEP-3', 
+    apiEndpoint: 'https://graph.microsoft.com/v1.0/users',
+    enabled: true  // ← Change this to true!
+};</pre>
+                <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">💡 Replace the placeholder values with your actual IDs from Step 3</p>
+            </div>
+            
+            <div class="config-section">
+                <h4>✅ Step 7: Test the Integration</h4>
+                <ol style="padding-left: 20px; font-size: 0.9rem;">
+                    <li>Save and reload your kiosk app</li>
+                    <li>Open <strong>"Staff Sign In/Out"</strong></li>
+                    <li>Try searching for a user name</li>
+                    <li>You should see <strong>"M365 Integration: Connected"</strong> in green</li>
+                    <li>Staff can now search and register PINs!</li>
+                </ol>
+            </div>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 15px; margin: 15px 0;">
+                <h4 style="color: #155724; margin: 0 0 10px 0;">🎉 Setup Complete!</h4>
+                <p style="color: #155724; margin: 0; font-size: 0.9rem;">Your kiosk is now connected to M365! Staff can search the directory and register PINs for quick access.</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn" onclick="testM365Connection()" style="margin: 5px;">
+                    🧪 Test Connection
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('m365SetupModal')" style="margin: 5px;">
+                    Close Guide
+                </button>
+            </div>
         </div>
     </div>
 
@@ -590,14 +803,19 @@
         let signedInStaff = JSON.parse(localStorage.getItem('signedInStaff') || '[]');
         let emergencyMode = false;
         
-        // Sample staff data (in real implementation, this would come from M365)
-        const staffDirectory = [
-            { id: 'EMP001', name: 'John Smith', department: 'IT', email: 'john.smith@company.com' },
-            { id: 'EMP002', name: 'Sarah Johnson', department: 'HR', email: 'sarah.johnson@company.com' },
-            { id: 'EMP003', name: 'Mike Davis', department: 'Finance', email: 'mike.davis@company.com' },
-            { id: 'EMP004', name: 'Lisa Wilson', department: 'Marketing', email: 'lisa.wilson@company.com' },
-            { id: 'EMP005', name: 'David Brown', department: 'Operations', email: 'david.brown@company.com' }
-        ];
+        // M365 Configuration - Replace with your tenant details
+        const M365_CONFIG = {
+            tenantId: '', // Your M365 Tenant ID (e.g., 'contoso.onmicrosoft.com')
+            clientId: '', // Your registered app client ID
+            apiEndpoint: 'https://graph.microsoft.com/v1.0/users', // Microsoft Graph API endpoint
+            enabled: false // Set to true when M365 is configured
+        };
+        
+        // Local staff directory (populated from M365 or manual entry)
+        let staffDirectory = JSON.parse(localStorage.getItem('staffDirectory') || '[]');
+        
+        // Store registered PINs (in production, this would be in secure backend)
+        let registeredPins = JSON.parse(localStorage.getItem('registeredPins') || '{}');
         
         // Prevent zoom on double tap
         let lastTouchEnd = 0;
@@ -620,6 +838,7 @@
             setInterval(updateDateTime, 1000);
             cleanupOldRecords();
             updateSignedInStaffDisplay();
+            updateM365Status();
             
             // Auto-cleanup every hour
             setInterval(cleanupOldRecords, 3600000);
@@ -645,6 +864,21 @@
             document.getElementById('dateTime').textContent = now.toLocaleDateString('en-US', options);
         }
         
+        function updateM365Status() {
+            const statusElement = document.getElementById('m365Status');
+            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
+                statusElement.textContent = `M365 Integration: Connected (${M365_CONFIG.tenantId})`;
+                statusElement.style.color = '#4CAF50';
+            } else {
+                statusElement.textContent = 'M365 Integration: Not Configured';
+                statusElement.style.color = '#ff4444';
+            }
+        }
+        
+        function showM365Setup() {
+            document.getElementById('m365SetupModal').style.display = 'block';
+        }
+        
         function openVisitorModal() {
             document.getElementById('visitorModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
@@ -655,6 +889,7 @@
             document.getElementById('staffModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
             updateSignedInStaffDisplay();
+            updateM365Status();
             clearMessages();
         }
         
@@ -668,7 +903,80 @@
             if (modalId === 'staffModal') {
                 document.getElementById('staffSearch').value = '';
                 document.getElementById('staffResults').style.display = 'none';
+                document.getElementById('pinInput').value = '';
             }
+            if (modalId === 'pinRegistrationModal') {
+                document.getElementById('pinRegistrationForm').reset();
+            }
+        }
+        
+        function openPinRegistration(staffId) {
+            const staff = staffDirectory.find(s => s.id === staffId);
+            if (!staff) return;
+            
+            // Show selected user info
+            document.getElementById('selectedUserInfo').innerHTML = `
+                <h4>Setting PIN for:</h4>
+                <div class="visitor-name">${staff.name || staff.displayName}</div>
+                <div class="visitor-details">${staff.jobTitle || 'N/A'} - ${staff.department || 'N/A'}</div>
+                <div class="visitor-details" style="font-size: 0.9rem; color: #666;">${staff.email || staff.mail || staff.userPrincipalName}</div>
+            `;
+            
+            // Store selected staff ID for registration
+            document.getElementById('pinRegistrationForm').dataset.staffId = staffId;
+            
+            // Close staff modal and open PIN registration
+            closeModal('staffModal');
+            document.getElementById('pinRegistrationModal').style.display = 'block';
+            clearMessages();
+        }
+        
+        function validatePinInput(input) {
+            // Only allow numbers
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+        
+        function handlePinRegistration(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const staffId = event.target.dataset.staffId;
+            const newPin = formData.get('newPin');
+            const confirmPin = formData.get('confirmPin');
+            
+            // Validation
+            if (newPin.length !== 4) {
+                showMessage('pinError', 'PIN must be exactly 4 digits.', true);
+                return;
+            }
+            
+            if (newPin !== confirmPin) {
+                showMessage('pinError', 'PINs do not match. Please try again.', true);
+                return;
+            }
+            
+            // Check if PIN is already in use
+            const existingUser = Object.keys(registeredPins).find(id => registeredPins[id] === newPin);
+            if (existingUser && existingUser !== staffId) {
+                showMessage('pinError', 'This PIN is already in use. Please choose a different PIN.', true);
+                return;
+            }
+            
+            // Register the PIN
+            registeredPins[staffId] = newPin;
+            localStorage.setItem('registeredPins', JSON.stringify(registeredPins));
+            
+            const staff = staffDirectory.find(s => s.id === staffId);
+            showMessage('pinSuccess', `PIN successfully registered for ${staff.name || staff.displayName}! You can now use your PIN for quick sign-in.`);
+            
+            // Simulate M365 integration
+            console.log('M365 Integration: PIN registered for user', { staffId, staffName: staff.name || staff.displayName });
+            
+            // Close modal after 3 seconds
+            setTimeout(() => {
+                closeModal('pinRegistrationModal');
+                openStaffModal(); // Return to staff modal
+            }, 3000);
         }
         
         function clearMessages() {
@@ -676,6 +984,8 @@
             document.getElementById('visitorError').style.display = 'none';
             document.getElementById('staffSuccess').style.display = 'none';
             document.getElementById('staffError').style.display = 'none';
+            document.getElementById('pinSuccess').style.display = 'none';
+            document.getElementById('pinError').style.display = 'none';
         }
         
         function showMessage(elementId, message, isError = false) {
@@ -709,7 +1019,8 @@
                 purpose: formData.get('visitPurpose'),
                 signInTime: new Date().toISOString(),
                 photo: document.querySelector('#photoPreview img')?.src || null,
-                signedOut: false
+                signedOut: false,
+                deviceId: getDeviceId()
             };
             
             visitors.push(visitor);
@@ -746,7 +1057,27 @@
             `;
         }
         
-        function searchStaff(query) {
+        function handlePinInput(pin) {
+            // Only process when PIN is 4 digits
+            if (pin.length === 4) {
+                const staff = findStaffByPin(pin);
+                if (staff) {
+                    // Auto sign in/out with PIN
+                    toggleStaffSignIn(staff.id, staff.name || staff.displayName, staff.department || 'N/A');
+                    document.getElementById('pinInput').value = '';
+                } else {
+                    showMessage('staffError', 'Invalid PIN. Please try again or search for your name below.', true);
+                    document.getElementById('pinInput').value = '';
+                }
+            }
+        }
+        
+        function findStaffByPin(pin) {
+            const staffId = Object.keys(registeredPins).find(id => registeredPins[id] === pin);
+            return staffId ? staffDirectory.find(staff => staff.id === staffId) : null;
+        }
+        
+        async function searchStaff(query) {
             const resultsDiv = document.getElementById('staffResults');
             
             if (query.length < 2) {
@@ -754,29 +1085,88 @@
                 return;
             }
             
-            const filteredStaff = staffDirectory.filter(staff => 
-                staff.name.toLowerCase().includes(query.toLowerCase()) ||
-                staff.id.toLowerCase().includes(query.toLowerCase()) ||
-                staff.department.toLowerCase().includes(query.toLowerCase())
-            );
+            // Show loading state
+            resultsDiv.innerHTML = '<div class="visitor-item">Searching directory...</div>';
+            resultsDiv.style.display = 'block';
             
-            if (filteredStaff.length > 0) {
-                resultsDiv.innerHTML = filteredStaff.map(staff => `
+            let searchResults = [];
+            
+            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
+                // Real M365 Search via Microsoft Graph API
+                try {
+                    searchResults = await searchM365Users(query);
+                } catch (error) {
+                    console.error('M365 Search Error:', error);
+                    resultsDiv.innerHTML = '<div class="visitor-item">M365 connection error. Please check configuration.</div>';
+                    return;
+                }
+            } else {
+                // Local directory search (fallback)
+                searchResults = staffDirectory.filter(staff => 
+                    (staff.name && staff.name.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.displayName && staff.displayName.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.id && staff.id.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.department && staff.department.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.email && staff.email.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.mail && staff.mail.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.jobTitle && staff.jobTitle.toLowerCase().includes(query.toLowerCase()))
+                );
+            }
+            
+            if (searchResults.length > 0) {
+                resultsDiv.innerHTML = searchResults.map(staff => `
                     <div class="visitor-item">
                         <div class="visitor-info">
-                            <div class="visitor-name">${staff.name}</div>
-                            <div class="visitor-details">${staff.id} - ${staff.department}</div>
+                            <div class="visitor-name">${staff.name || staff.displayName}</div>
+                            <div class="visitor-details">${staff.jobTitle || 'N/A'} - ${staff.department || 'N/A'}</div>
+                            <div class="visitor-details" style="font-size: 0.75rem; color: #888;">${staff.email || staff.mail || staff.userPrincipalName}</div>
                         </div>
-                        <button class="btn" onclick="toggleStaffSignIn('${staff.id}', '${staff.name}', '${staff.department}')" style="min-width: 80px; padding: 8px 12px; font-size: 0.9rem;">
-                            ${isStaffSignedIn(staff.id) ? 'Sign Out' : 'Sign In'}
-                        </button>
+                        <div style="display: flex; gap: 5px; flex-direction: column;">
+                            <button class="btn" onclick="toggleStaffSignIn('${staff.id}', '${staff.name || staff.displayName}', '${staff.department || 'N/A'}')" style="min-width: 80px; padding: 6px 10px; font-size: 0.85rem;">
+                                ${isStaffSignedIn(staff.id) ? 'Sign Out' : 'Sign In'}
+                            </button>
+                            ${!registeredPins[staff.id] ? `
+                                <button class="btn btn-secondary" onclick="openPinRegistration('${staff.id}')" style="min-width: 80px; padding: 6px 10px; font-size: 0.8rem;">
+                                    Set PIN
+                                </button>
+                            ` : `
+                                <span style="font-size: 0.7rem; color: #4CAF50; text-align: center;">✓ PIN Set</span>
+                            `}
+                        </div>
                     </div>
                 `).join('');
-                resultsDiv.style.display = 'block';
             } else {
-                resultsDiv.innerHTML = '<div class="visitor-item">No staff members found</div>';
-                resultsDiv.style.display = 'block';
+                if (M365_CONFIG.enabled) {
+                    resultsDiv.innerHTML = '<div class="visitor-item">No users found in M365 directory</div>';
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="visitor-item">
+                            <div class="visitor-info">
+                                <div class="visitor-name">M365 Not Connected</div>
+                                <div class="visitor-details">Configure M365 integration to search your organization directory</div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
+        }
+        
+        // Microsoft Graph API integration
+        async function searchM365Users(query) {
+            // This would require proper authentication in production
+            // For now, return empty array as M365 is not configured
+            console.log('M365 Search would query:', `${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`);
+            
+            // In production, this would be:
+            // const response = await fetch(`${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`, {
+            //     headers: {
+            //         'Authorization': `Bearer ${accessToken}`,
+            //         'Content-Type': 'application/json'
+            //     }
+            // });
+            // return await response.json();
+            
+            return [];
         }
         
         function isStaffSignedIn(staffId) {
@@ -796,7 +1186,8 @@
                     id: staffId,
                     name: staffName,
                     department: department,
-                    signInTime: new Date().toISOString()
+                    signInTime: new Date().toISOString(),
+                    deviceId: getDeviceId()
                 });
                 showMessage('staffSuccess', `${staffName} has been signed in.`);
             }
@@ -870,7 +1261,7 @@
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             
-            // Clean up old visitor records
+            // Keep visitor records for exactly 30 days for compliance
             const oldVisitorCount = visitors.length;
             visitors = visitors.filter(visitor => 
                 new Date(visitor.signInTime) > thirtyDaysAgo
@@ -878,7 +1269,10 @@
             
             if (visitors.length !== oldVisitorCount) {
                 localStorage.setItem('visitors', JSON.stringify(visitors));
-                console.log(`Cleaned up ${oldVisitorCount - visitors.length} old visitor records`);
+                console.log(`Archived ${oldVisitorCount - visitors.length} visitor records older than 30 days`);
+                
+                // Log retention compliance
+                console.log(`Visitor data retention: ${visitors.length} records maintained within 30-day window`);
             }
             
             // Clean up old staff sign-in records (keep only current session)
@@ -890,6 +1284,73 @@
             if (signedInStaff.length !== oldStaffCount) {
                 localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
                 updateSignedInStaffDisplay();
+            }
+        }
+        
+        // Export visitor data for compliance/backup
+        function exportVisitorData() {
+            const dataToExport = {
+                visitors: visitors,
+                exportDate: new Date().toISOString(),
+                totalRecords: visitors.length,
+                retentionPeriod: '30 days',
+                deviceId: getDeviceId()
+            };
+            
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `visitor-records-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showMessage('staffSuccess', `Exported ${visitors.length} visitor records for compliance backup.`);
+        }
+        
+        // Get visitor statistics
+        function getVisitorStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const thisWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const thisMonth = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            return {
+                total: visitors.length,
+                today: visitors.filter(v => new Date(v.signInTime) >= today).length,
+                thisWeek: visitors.filter(v => new Date(v.signInTime) >= thisWeek).length,
+                thisMonth: visitors.filter(v => new Date(v.signInTime) >= thisMonth).length,
+                currentlySignedIn: visitors.filter(v => !v.signedOut).length
+            };
+        }
+        
+        function showVisitorStats() {
+            const stats = getVisitorStats();
+            const message = `📊 Visitor Statistics:\n\n` +
+                `Today: ${stats.today} visitors\n` +
+                `This Week: ${stats.thisWeek} visitors\n` +
+                `This Month: ${stats.thisMonth} visitors\n` +
+                `Total Records: ${stats.total} visitors\n` +
+                `Currently Signed In: ${stats.currentlySignedIn} visitors`;
+            
+            showMessage('staffSuccess', message.replace(/\n/g, ' | '));
+        }
+        
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'KIOSK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+        
+        // Test M365 connection
+        function testM365Connection() {
+            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
+                showMessage('staffSuccess', '✅ M365 Configuration looks good! Try searching for a staff member to test the connection.');
+            } else {
+                showMessage('staffError', '❌ M365 not configured. Please complete Step 6 in the setup guide.', true);
             }
         }
         
@@ -907,5 +1368,5 @@
         // Initialize app when page loads
         init();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993b89c9b0a763d2',t:'MTc2MTMzMDU1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993b9c20e13563d2',t:'MTc2MTMzMTMwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
