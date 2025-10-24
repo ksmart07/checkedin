@@ -64,12 +64,19 @@
             flex: 1;
             display: flex;
             padding: 20px;
-            gap: 20px;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+        }
+        
+        .kiosk-layout {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            align-items: stretch;
         }
         
         .sign-option {
@@ -80,9 +87,8 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             cursor: pointer;
             transition: all 0.2s ease;
-            width: 90%;
-            max-width: 350px;
-            min-height: 200px;
+            flex: 1;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -394,8 +400,95 @@
             color: #2196F3;
         }
         
+        .admin-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 0;
+            position: relative;
+        }
+        
+        .admin-notice.warning {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .admin-notice.alert {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            animation: noticeFlash 2s infinite;
+        }
+        
+        @keyframes noticeFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .notice-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notice-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notice-text {
+            flex: 1;
+            font-weight: 500;
+            color: #856404;
+        }
+        
+        .admin-notice.warning .notice-text {
+            color: #721c24;
+        }
+        
+        .notice-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #856404;
+            padding: 0 5px;
+        }
+        
+        .admin-notice.warning .notice-close {
+            color: #721c24;
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .gdpr-notice {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .gdpr-notice p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .lockout-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #f5c6cb;
+        }
+        
         /* Android-specific optimizations */
-        @media screen and (max-width: 480px) {
+        @media screen and (max-width: 768px) {
             .header h1 {
                 font-size: 1.5rem;
             }
@@ -406,12 +499,16 @@
             
             .main-content {
                 padding: 15px;
-                gap: 15px;
+            }
+            
+            .kiosk-layout {
+                flex-direction: column;
+                gap: 20px;
             }
             
             .sign-option {
                 padding: 30px 20px;
-                min-height: 160px;
+                min-height: 200px;
             }
             
             .sign-option .icon {
@@ -437,27 +534,37 @@
                 font-size: 1rem;
                 margin: 5px;
             }
+            
+            .gdpr-notice p {
+                font-size: 0.8rem;
+            }
         }
         
         /* Landscape orientation adjustments */
-        @media screen and (orientation: landscape) and (max-height: 500px) {
-            .main-content {
-                flex-direction: row;
-                padding: 15px;
-            }
-            
-            .sign-option {
-                width: 45%;
-                min-height: 140px;
-                padding: 25px 15px;
-            }
-            
+        @media screen and (orientation: landscape) and (max-height: 600px) {
             .header {
                 padding: 10px;
             }
             
             .header h1 {
                 font-size: 1.4rem;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .sign-option {
+                min-height: 200px;
+                padding: 25px 15px;
+            }
+            
+            .footer {
+                padding: 10px;
+            }
+            
+            .gdpr-notice p {
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -473,22 +580,38 @@
             <div class="date-time" id="dateTime"></div>
         </header>
         
-        <main class="main-content">
-            <div class="sign-option visitor-option" onclick="openVisitorModal()">
-                <div class="icon">👥</div>
-                <h2>Visitor Sign In</h2>
-                <p>New visitors and guests</p>
+        <div id="adminNotice" class="admin-notice" style="display: none;">
+            <div class="notice-content">
+                <span class="notice-icon">📢</span>
+                <span class="notice-text" id="noticeText"></span>
+                <button class="notice-close" onclick="dismissNotice()">&times;</button>
             </div>
-            
-            <div class="sign-option staff-option" onclick="openStaffModal()">
-                <div class="icon">👔</div>
-                <h2>Staff Sign In/Out</h2>
-                <p>Employees and team members</p>
+        </div>
+        
+        <main class="main-content">
+            <div class="kiosk-layout">
+                <div class="sign-option visitor-option" onclick="openVisitorModal()">
+                    <div class="icon">👥</div>
+                    <h2>Visitor Sign In</h2>
+                    <p>New visitors and guests</p>
+                </div>
+                
+                <div class="sign-option staff-option" onclick="openStaffModal()">
+                    <div class="icon">👔</div>
+                    <h2>Staff Sign In/Out</h2>
+                    <p>Employees and team members</p>
+                </div>
             </div>
         </main>
         
+        <footer class="footer">
+            <div class="gdpr-notice">
+                <p><strong>Data Protection Notice:</strong> By using this system, you consent to the collection and processing of your personal data for security, safety, and visitor management purposes in accordance with GDPR. Your data will be retained for 30 days and may be shared with emergency services if required. For more information, contact our Data Protection Officer.</p>
+            </div>
+        </footer>
+        
         <div class="emergency-controls">
-            <button class="emergency-btn" onclick="toggleEmergency()" title="Emergency Evacuation">
+            <button class="emergency-btn" onclick="toggleEmergency()" title="Emergency Evacuation & Alert">
                 🚨
             </button>
         </div>
@@ -561,6 +684,13 @@
                     </label>
                 </div>
                 
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gdprConsentVisitor" required style="width: auto; margin-right: 10px;">
+                        <strong>GDPR Consent:</strong> I consent to the collection, processing, and storage of my personal data (name, email, phone, company, photo) for visitor management, security, and safety purposes. I understand this data will be retained for 30 days and may be shared with emergency services if required. I can request access, correction, or deletion of my data by contacting the Data Protection Officer.
+                    </label>
+                </div>
+                
                 <button type="submit" class="btn">Sign In Visitor</button>
                 <button type="button" class="btn btn-secondary" onclick="closeModal('visitorModal')">Cancel</button>
             </form>
@@ -575,20 +705,21 @@
             
             <div class="success-message" id="staffSuccess"></div>
             <div class="error-message" id="staffError"></div>
+            <div class="lockout-message" id="lockoutMessage" style="display: none;"></div>
             
-            <!-- M365 Configuration Status -->
+            <!-- ABS365 Configuration Status -->
             <div class="config-section">
-                <h4>🔧 M365 Integration Setup Required</h4>
-                <p style="margin: 5px 0; font-size: 0.9rem;">To connect to your organization's directory:</p>
-                <ol style="margin: 10px 0; padding-left: 20px; font-size: 0.85rem;">
-                    <li>Register app in Azure AD</li>
-                    <li>Get Tenant ID and Client ID</li>
-                    <li>Configure API permissions</li>
-                    <li>Update M365_CONFIG in code</li>
-                </ol>
-                <button class="btn btn-secondary" onclick="showM365Setup()" style="padding: 8px 15px; font-size: 0.9rem;">
-                    View Setup Instructions
-                </button>
+                <h4>🔧 ABS365 Integration Status</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;" id="abs365StatusText">
+                    Configure your tenant details in the code to enable directory search.
+                </p>
+            </div>
+            
+            <div class="config-section" id="workingTimeStatus">
+                <h4>🕐 Working Time Status</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;" id="workingTimeText">
+                    Checking working hours...
+                </p>
             </div>
             
             <!-- PIN Sign In Section -->
@@ -665,136 +796,20 @@
                     </label>
                 </div>
                 
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gdprConsentStaff" required style="width: auto; margin-right: 10px;">
+                        <strong>GDPR Consent:</strong> I consent to the collection, processing, and storage of my personal data (name, department, sign-in times, PIN) for staff management, security, and safety purposes. I understand this data will be retained for 30 days and may be shared with emergency services if required.
+                    </label>
+                </div>
+                
                 <button type="submit" class="btn">Register PIN</button>
                 <button type="button" class="btn btn-secondary" onclick="closeModal('pinRegistrationModal')">Cancel</button>
             </form>
         </div>
     </div>
     
-    <!-- M365 Setup Instructions Modal -->
-    <div id="m365SetupModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('m365SetupModal')">&times;</button>
-            <h2>🔧 Complete Azure AD Setup Guide</h2>
-            
-            <div class="config-section">
-                <h4>📋 Prerequisites</h4>
-                <ul style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>✅ <strong>Global Administrator</strong> or <strong>Application Administrator</strong> role in Azure AD</li>
-                    <li>✅ Access to <strong>Azure Portal</strong> (portal.azure.com)</li>
-                    <li>✅ Your organization's <strong>M365 tenant</strong></li>
-                </ul>
-            </div>
-            
-            <div class="config-section">
-                <h4>🚀 Step 1: Access Azure Portal</h4>
-                <ol style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>Open browser and go to: <strong>https://portal.azure.com</strong></li>
-                    <li>Sign in with your <strong>admin account</strong></li>
-                    <li>In the search bar, type: <strong>"Azure Active Directory"</strong></li>
-                    <li>Click on <strong>"Azure Active Directory"</strong> from results</li>
-                </ol>
-            </div>
-            
-            <div class="config-section">
-                <h4>📱 Step 2: Create App Registration</h4>
-                <ol style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>In Azure AD, click <strong>"App registrations"</strong> in left menu</li>
-                    <li>Click <strong>"+ New registration"</strong> button (top of page)</li>
-                    <li><strong>Name:</strong> Type "Visitor Kiosk System"</li>
-                    <li><strong>Supported account types:</strong> Select <strong>"Accounts in this organizational directory only"</strong></li>
-                    <li><strong>Redirect URI:</strong> 
-                        <ul style="margin: 5px 0;">
-                            <li>Select <strong>"Single-page application (SPA)"</strong> from dropdown</li>
-                            <li>Enter: <strong>https://yourdomain.com/kiosk</strong> (or your tablet URL)</li>
-                        </ul>
-                    </li>
-                    <li>Click <strong>"Register"</strong> button</li>
-                </ol>
-            </div>
-            
-            <div class="config-section">
-                <h4>🔑 Step 3: Copy Important IDs</h4>
-                <p style="font-size: 0.9rem; margin-bottom: 10px;">After registration, you'll see the app overview page. <strong>COPY THESE VALUES:</strong></p>
-                <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                    <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📋 Application (client) ID:</strong> <span style="font-family: monospace; background: #f8f9fa; padding: 2px 5px;">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span></p>
-                    <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📋 Directory (tenant) ID:</strong> <span style="font-family: monospace; background: #f8f9fa; padding: 2px 5px;">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span></p>
-                </div>
-                <p style="font-size: 0.85rem; color: #666;">💡 <strong>Tip:</strong> Keep these IDs safe - you'll need them in Step 6!</p>
-            </div>
-            
-            <div class="config-section">
-                <h4>🔐 Step 4: Configure API Permissions</h4>
-                <ol style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>In your app, click <strong>"API permissions"</strong> in left menu</li>
-                    <li>Click <strong>"+ Add a permission"</strong></li>
-                    <li>Select <strong>"Microsoft Graph"</strong></li>
-                    <li>Choose <strong>"Delegated permissions"</strong></li>
-                    <li>Search and select these permissions:
-                        <ul style="margin: 5px 0; padding-left: 15px;">
-                            <li>✅ <strong>User.Read.All</strong> (Read all users' full profiles)</li>
-                            <li>✅ <strong>Directory.Read.All</strong> (Read directory data)</li>
-                        </ul>
-                    </li>
-                    <li>Click <strong>"Add permissions"</strong></li>
-                    <li><strong>IMPORTANT:</strong> Click <strong>"Grant admin consent for [Your Organization]"</strong></li>
-                    <li>Click <strong>"Yes"</strong> to confirm</li>
-                </ol>
-            </div>
-            
-            <div class="config-section">
-                <h4>🌐 Step 5: Configure Authentication</h4>
-                <ol style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>Click <strong>"Authentication"</strong> in left menu</li>
-                    <li>Under <strong>"Implicit grant and hybrid flows"</strong>:
-                        <ul style="margin: 5px 0; padding-left: 15px;">
-                            <li>✅ Check <strong>"Access tokens"</strong></li>
-                            <li>✅ Check <strong>"ID tokens"</strong></li>
-                        </ul>
-                    </li>
-                    <li>Click <strong>"Save"</strong></li>
-                </ol>
-            </div>
-            
-            <div class="config-section">
-                <h4>💻 Step 6: Update Kiosk Configuration</h4>
-                <p style="font-size: 0.9rem;">In your kiosk code, find the M365_CONFIG section and update:</p>
-                <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; font-size: 0.8rem; overflow-x: auto; border-left: 4px solid #4CAF50;">
-const M365_CONFIG = {
-    tenantId: 'a495e860-276d-4bf7-9e2c-cdbcca566668',
-    clientId: '9193d1d3-bd8a-4437-b11b-8f23d3c53020', 
-    apiEndpoint: 'https://graph.microsoft.com/v1.0/users',
-    enabled: true  // ← Change this to true!
-};</pre>
-                <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">💡 Replace the placeholder values with your actual IDs from Step 3</p>
-            </div>
-            
-            <div class="config-section">
-                <h4>✅ Step 7: Test the Integration</h4>
-                <ol style="padding-left: 20px; font-size: 0.9rem;">
-                    <li>Save and reload your kiosk app</li>
-                    <li>Open <strong>"Staff Sign In/Out"</strong></li>
-                    <li>Try searching for a user name</li>
-                    <li>You should see <strong>"M365 Integration: Connected"</strong> in green</li>
-                    <li>Staff can now search and register PINs!</li>
-                </ol>
-            </div>
-            
-            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 15px; margin: 15px 0;">
-                <h4 style="color: #155724; margin: 0 0 10px 0;">🎉 Setup Complete!</h4>
-                <p style="color: #155724; margin: 0; font-size: 0.9rem;">Your kiosk is now connected to M365! Staff can search the directory and register PINs for quick access.</p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 20px;">
-                <button type="button" class="btn" onclick="testM365Connection()" style="margin: 5px;">
-                    🧪 Test Connection
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('m365SetupModal')" style="margin: 5px;">
-                    Close Guide
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <script>
         // Global state management
@@ -803,19 +818,103 @@ const M365_CONFIG = {
         let signedInStaff = JSON.parse(localStorage.getItem('signedInStaff') || '[]');
         let emergencyMode = false;
         
-        // M365 Configuration - Replace with your tenant details
+        // ============================================
+        // CONFIGURATION SECTION - EDIT THESE VALUES
+        // ============================================
+        
+        // Microsoft 365 Integration Configuration
+        // To enable M365 directory search, you need to:
+        // 1. Register an app in Azure AD (https://portal.azure.com)
+        // 2. Grant Microsoft Graph API permissions (User.Read.All)
+        // 3. Get your Tenant ID and Client ID from Azure AD
         const M365_CONFIG = {
-            tenantId: '', // Your M365 Tenant ID (e.g., 'contoso.onmicrosoft.com')
-            clientId: '', // Your registered app client ID
-            apiEndpoint: 'https://graph.microsoft.com/v1.0/users', // Microsoft Graph API endpoint
-            enabled: false // Set to true when M365 is configured
+            tenantId: '', // REPLACE: Your M365 Tenant ID (e.g., 'your-company.onmicrosoft.com')
+            clientId: '', // REPLACE: Your App Registration Client ID (e.g., '12345678-1234-1234-1234-123456789012')
+            apiEndpoint: 'https://graph.microsoft.com/v1.0/users',
+            enabled: false // CHANGE TO TRUE: Set to true after completing M365 setup
         };
+        
+        // Email Configuration for Reports and Alerts
+        // Replace with your actual email addresses and SMTP settings
+        const EMAIL_CONFIG = {
+            evacuationEmail: 'admin@yourcompany.com', // REPLACE: Email for emergency evacuation reports
+            securityEmail: 'security@yourcompany.com', // REPLACE: Email for security alerts (PIN lockouts)
+            dailyReportTime: '12:00', // CUSTOMIZE: Noon daily report (24-hour format)
+            eveningReportTime: '18:00', // CUSTOMIZE: 6 PM daily report (24-hour format)
+            enabled: true // CHANGE TO FALSE: Set to false to disable all email reports
+        };
+        
+        // Automatic Sign-Out Configuration
+        // Automatically signs out all users after working hours, weekends, and bank holidays
+        const AUTO_SIGNOUT_CONFIG = {
+            workingDayEndTime: '18:00', // CUSTOMIZE: Auto sign-out time on working days (24-hour format)
+            enabled: true, // CHANGE TO FALSE: Set to false to disable automatic sign-out
+            checkInterval: 60000 // ADVANCED: Check every minute (60000ms) - don't change unless needed
+        };
+        
+        // Security Configuration for PIN Protection
+        // Protects against brute force PIN attacks
+        const SECURITY_CONFIG = {
+            maxPinAttempts: 3, // CUSTOMIZE: Maximum PIN attempts before lockout (recommended: 3-5)
+            lockoutDuration: 30, // CUSTOMIZE: Lockout duration in minutes (recommended: 15-60)
+            adminEmail: 'admin@yourcompany.com', // REPLACE: Admin email for security alerts
+            enabled: true // CHANGE TO FALSE: Set to false to disable security lockout
+        };
+        
+        // Admin Notice Configuration
+        // Display important notices to all users (fire drills, COVID restrictions, etc.)
+        const ADMIN_CONFIG = {
+            noticesEnabled: false, // CHANGE TO TRUE: Set to true to show admin notices
+            currentNotice: '', // REPLACE: Current admin notice text (e.g., 'Fire drill today at 2 PM')
+            noticeType: 'info' // CUSTOMIZE: 'info' (yellow), 'warning' (orange), 'alert' (red, flashing)
+        };
+        
+        // Example Admin Notice Configurations:
+        // Fire Drill Notice:
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'Fire drill scheduled for today at 2 PM. Please follow evacuation procedures.';
+        // ADMIN_CONFIG.noticeType = 'warning';
+        
+        // COVID Restrictions Notice:
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'COVID-19 restrictions: Please maintain social distancing and wear masks.';
+        // ADMIN_CONFIG.noticeType = 'info';
+        // ============================================
         
         // Local staff directory (populated from M365 or manual entry)
         let staffDirectory = JSON.parse(localStorage.getItem('staffDirectory') || '[]');
         
         // Store registered PINs (in production, this would be in secure backend)
         let registeredPins = JSON.parse(localStorage.getItem('registeredPins') || '{}');
+        
+        // Security tracking
+        let pinAttempts = JSON.parse(localStorage.getItem('pinAttempts') || '{}');
+        let lockoutStatus = JSON.parse(localStorage.getItem('lockoutStatus') || '{}');
+        
+        // UK Bank Holidays (update annually)
+        const UK_BANK_HOLIDAYS = [
+            // 2024 Bank Holidays
+            '2024-01-01', // New Year's Day
+            '2024-03-29', // Good Friday
+            '2024-04-01', // Easter Monday
+            '2024-05-06', // Early May Bank Holiday
+            '2024-05-27', // Spring Bank Holiday
+            '2024-08-26', // Summer Bank Holiday
+            '2024-12-25', // Christmas Day
+            '2024-12-26', // Boxing Day
+            
+            // 2025 Bank Holidays
+            '2025-01-01', // New Year's Day
+            '2025-04-18', // Good Friday
+            '2025-04-21', // Easter Monday
+            '2025-05-05', // Early May Bank Holiday
+            '2025-05-26', // Spring Bank Holiday
+            '2025-08-25', // Summer Bank Holiday
+            '2025-12-25', // Christmas Day
+            '2025-12-26', // Boxing Day
+            
+            // Add more years as needed
+        ];
         
         // Prevent zoom on double tap
         let lastTouchEnd = 0;
@@ -839,9 +938,23 @@ const M365_CONFIG = {
             cleanupOldRecords();
             updateSignedInStaffDisplay();
             updateM365Status();
+            updateWorkingTimeStatus();
+            checkM365Connection();
+            initializeAdminNotice();
+            checkLockoutStatus();
             
             // Auto-cleanup every hour
             setInterval(cleanupOldRecords, 3600000);
+            
+            // Check for scheduled email reports every minute
+            setInterval(checkScheduledEmails, 60000);
+            
+            // Check for automatic sign-out conditions
+            if (AUTO_SIGNOUT_CONFIG.enabled) {
+                setInterval(checkAutoSignOut, AUTO_SIGNOUT_CONFIG.checkInterval);
+                // Update working time status every minute
+                setInterval(updateWorkingTimeStatus, 60000);
+            }
             
             // Handle orientation changes
             window.addEventListener('orientationchange', function() {
@@ -867,16 +980,61 @@ const M365_CONFIG = {
         function updateM365Status() {
             const statusElement = document.getElementById('m365Status');
             if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
-                statusElement.textContent = `M365 Integration: Connected (${M365_CONFIG.tenantId})`;
+                statusElement.textContent = 'ABS365: Connected';
                 statusElement.style.color = '#4CAF50';
             } else {
-                statusElement.textContent = 'M365 Integration: Not Configured';
+                statusElement.textContent = 'ABS365: Not Configured';
                 statusElement.style.color = '#ff4444';
             }
         }
         
-        function showM365Setup() {
-            document.getElementById('m365SetupModal').style.display = 'block';
+        function updateWorkingTimeStatus() {
+            const statusText = document.getElementById('workingTimeText');
+            const now = new Date();
+            
+            if (isWorkingTime(now)) {
+                statusText.textContent = '✅ Currently working hours - Sign-ins allowed';
+                statusText.style.color = '#4CAF50';
+            } else {
+                const reason = getSignOutReason(now);
+                statusText.textContent = `🔒 Non-working time (${reason}) - Auto sign-out active`;
+                statusText.style.color = '#ff6b35';
+            }
+        }
+        
+        // Check M365 connection status
+        async function checkM365Connection() {
+            const statusText = document.getElementById('abs365StatusText');
+            
+            if (!M365_CONFIG.enabled || !M365_CONFIG.tenantId || !M365_CONFIG.clientId) {
+                statusText.textContent = 'Configure your tenant details in the code to enable directory search.';
+                statusText.style.color = '#666';
+                return false;
+            }
+            
+            try {
+                // Test connection to Microsoft Graph
+                const response = await fetch(`${M365_CONFIG.apiEndpoint}?$top=1`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    statusText.textContent = '✅ ABS365 connection verified and ready.';
+                    statusText.style.color = '#4CAF50';
+                    return true;
+                } else {
+                    statusText.textContent = '❌ ABS365 connection failed. Check configuration.';
+                    statusText.style.color = '#ff4444';
+                    return false;
+                }
+            } catch (error) {
+                statusText.textContent = '❌ ABS365 connection error. Check network and configuration.';
+                statusText.style.color = '#ff4444';
+                return false;
+            }
         }
         
         function openVisitorModal() {
@@ -969,8 +1127,7 @@ const M365_CONFIG = {
             const staff = staffDirectory.find(s => s.id === staffId);
             showMessage('pinSuccess', `PIN successfully registered for ${staff.name || staff.displayName}! You can now use your PIN for quick sign-in.`);
             
-            // Simulate M365 integration
-            console.log('M365 Integration: PIN registered for user', { staffId, staffName: staff.name || staff.displayName });
+            // PIN registered successfully
             
             // Close modal after 3 seconds
             setTimeout(() => {
@@ -1026,8 +1183,7 @@ const M365_CONFIG = {
             visitors.push(visitor);
             localStorage.setItem('visitors', JSON.stringify(visitors));
             
-            // Simulate M365 integration notification
-            console.log('M365 Integration: Visitor signed in', visitor);
+            // Visitor signed in successfully
             
             showMessage('visitorSuccess', `Welcome ${visitor.name}! You have been successfully signed in. Please wait for your host.`);
             
@@ -1058,15 +1214,27 @@ const M365_CONFIG = {
         }
         
         function handlePinInput(pin) {
+            // Check if system is locked out
+            if (isSystemLockedOut()) {
+                const lockoutEnd = new Date(lockoutStatus.lockoutEnd);
+                const remainingTime = Math.ceil((lockoutEnd - new Date()) / 60000);
+                showLockoutMessage(`System locked due to multiple failed PIN attempts. Try again in ${remainingTime} minutes.`);
+                document.getElementById('pinInput').value = '';
+                return;
+            }
+            
             // Only process when PIN is 4 digits
             if (pin.length === 4) {
                 const staff = findStaffByPin(pin);
                 if (staff) {
+                    // Successful PIN - reset attempts
+                    resetPinAttempts();
                     // Auto sign in/out with PIN
                     toggleStaffSignIn(staff.id, staff.name || staff.displayName, staff.department || 'N/A');
                     document.getElementById('pinInput').value = '';
                 } else {
-                    showMessage('staffError', 'Invalid PIN. Please try again or search for your name below.', true);
+                    // Failed PIN attempt
+                    recordFailedPinAttempt(pin);
                     document.getElementById('pinInput').value = '';
                 }
             }
@@ -1153,20 +1321,36 @@ const M365_CONFIG = {
         
         // Microsoft Graph API integration
         async function searchM365Users(query) {
-            // This would require proper authentication in production
-            // For now, return empty array as M365 is not configured
-            console.log('M365 Search would query:', `${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`);
+            if (!M365_CONFIG.enabled || !M365_CONFIG.tenantId || !M365_CONFIG.clientId) {
+                return [];
+            }
             
-            // In production, this would be:
-            // const response = await fetch(`${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`, {
-            //     headers: {
-            //         'Authorization': `Bearer ${accessToken}`,
-            //         'Content-Type': 'application/json'
-            //     }
-            // });
-            // return await response.json();
-            
-            return [];
+            try {
+                const response = await fetch(`${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAccessToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.value || [];
+                } else {
+                    console.error('M365 Search Error:', response.status);
+                    return [];
+                }
+            } catch (error) {
+                console.error('M365 Search Error:', error);
+                return [];
+            }
+        }
+        
+        // Get access token for M365 (implement based on your auth method)
+        function getAccessToken() {
+            // This should return your valid access token
+            // Implementation depends on your authentication setup
+            return localStorage.getItem('m365AccessToken') || '';
         }
         
         function isStaffSignedIn(staffId) {
@@ -1201,8 +1385,7 @@ const M365_CONFIG = {
                 searchStaff(searchValue);
             }
             
-            // Simulate M365 integration
-            console.log('M365 Integration: Staff status updated', { staffId, staffName, signedIn: existingIndex < 0 });
+            // Staff status updated
         }
         
         function updateSignedInStaffDisplay() {
@@ -1232,8 +1415,6 @@ const M365_CONFIG = {
             
             if (emergencyMode) {
                 banner.style.display = 'block';
-                // In real implementation, this would trigger M365 notifications
-                console.log('EMERGENCY: Fire evacuation initiated - notifying all staff via M365');
                 
                 // Auto-sign out all visitors and staff for safety tracking
                 visitors.forEach(visitor => {
@@ -1251,10 +1432,371 @@ const M365_CONFIG = {
                 localStorage.setItem('visitors', JSON.stringify(visitors));
                 localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
                 
+                // Send emergency evacuation email
+                sendEvacuationEmail();
+                
             } else {
                 banner.style.display = 'none';
-                console.log('Emergency mode deactivated');
             }
+        }
+        
+        // Send evacuation email report
+        function sendEvacuationEmail() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const currentVisitors = visitors.filter(v => !v.signedOut);
+            const currentStaff = signedInStaff.filter(s => !s.emergencySignOut);
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `🚨 FIRE EVACUATION REPORT - ${new Date().toLocaleString()}`,
+                body: generateEvacuationReport(currentVisitors, currentStaff)
+            };
+            
+            // Send email (implement your email service here)
+            sendEmail(emailData);
+            
+            showMessage('staffSuccess', `Evacuation report sent to ${EMAIL_CONFIG.evacuationEmail}`);
+        }
+        
+        // Generate evacuation report content
+        function generateEvacuationReport(visitors, staff) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `FIRE EVACUATION REPORT\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `VISITORS IN BUILDING (${visitors.length}):\n`;
+            report += `${'='.repeat(40)}\n`;
+            
+            if (visitors.length === 0) {
+                report += `No visitors currently signed in.\n\n`;
+            } else {
+                visitors.forEach((visitor, index) => {
+                    report += `${index + 1}. ${visitor.name}\n`;
+                    report += `   Company: ${visitor.company || 'N/A'}\n`;
+                    report += `   Host: ${visitor.host}\n`;
+                    report += `   Phone: ${visitor.phone || 'N/A'}\n`;
+                    report += `   Signed In: ${new Date(visitor.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `STAFF IN BUILDING (${staff.length}):\n`;
+            report += `${'='.repeat(40)}\n`;
+            
+            if (staff.length === 0) {
+                report += `No staff currently signed in.\n\n`;
+            } else {
+                staff.forEach((member, index) => {
+                    report += `${index + 1}. ${member.name}\n`;
+                    report += `   Department: ${member.department}\n`;
+                    report += `   Signed In: ${new Date(member.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `TOTAL PEOPLE IN BUILDING: ${visitors.length + staff.length}\n`;
+            report += `\nThis report was automatically generated by the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Check for scheduled email reports
+        function checkScheduledEmails() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+            const today = now.toDateString();
+            
+            // Check if we've already sent today's reports
+            const lastNoonReport = localStorage.getItem('lastNoonReport');
+            const lastEveningReport = localStorage.getItem('lastEveningReport');
+            
+            // Send noon report
+            if (currentTime === EMAIL_CONFIG.dailyReportTime && lastNoonReport !== today) {
+                sendDailyReport('noon');
+                localStorage.setItem('lastNoonReport', today);
+            }
+            
+            // Send evening report
+            if (currentTime === EMAIL_CONFIG.eveningReportTime && lastEveningReport !== today) {
+                sendDailyReport('evening');
+                localStorage.setItem('lastEveningReport', today);
+            }
+        }
+        
+        // Send daily report
+        function sendDailyReport(timeOfDay) {
+            const stats = getVisitorStats();
+            const currentVisitors = visitors.filter(v => !v.signedOut);
+            const currentStaff = signedInStaff;
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `📊 Daily Building Report - ${timeOfDay.toUpperCase()} - ${new Date().toLocaleDateString()}`,
+                body: generateDailyReport(stats, currentVisitors, currentStaff, timeOfDay)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Generate daily report content
+        function generateDailyReport(stats, visitors, staff, timeOfDay) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `DAILY BUILDING REPORT - ${timeOfDay.toUpperCase()}\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `VISITOR STATISTICS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Today: ${stats.today} visitors\n`;
+            report += `This Week: ${stats.thisWeek} visitors\n`;
+            report += `This Month: ${stats.thisMonth} visitors\n`;
+            report += `Currently In Building: ${stats.currentlySignedIn} visitors\n\n`;
+            
+            if (visitors.length > 0) {
+                report += `CURRENT VISITORS (${visitors.length}):\n`;
+                report += `${'='.repeat(30)}\n`;
+                visitors.forEach((visitor, index) => {
+                    report += `${index + 1}. ${visitor.name} (${visitor.company || 'N/A'})\n`;
+                    report += `   Host: ${visitor.host}\n`;
+                    report += `   Since: ${new Date(visitor.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            if (staff.length > 0) {
+                report += `CURRENT STAFF (${staff.length}):\n`;
+                report += `${'='.repeat(30)}\n`;
+                staff.forEach((member, index) => {
+                    report += `${index + 1}. ${member.name} (${member.department})\n`;
+                    report += `   Since: ${new Date(member.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `TOTAL PEOPLE IN BUILDING: ${visitors.length + staff.length}\n`;
+            report += `\nThis is an automated ${timeOfDay} report from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Send email function (implement with your email service)
+        function sendEmail(emailData) {
+            // ============================================
+            // IMPLEMENT YOUR EMAIL SERVICE HERE
+            // ============================================
+            
+            // OPTION 1: EmailJS (Client-side email service)
+            // Sign up at https://www.emailjs.com/ and get your service ID, template ID, and public key
+            /*
+            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+                to_email: emailData.to,
+                subject: emailData.subject,
+                message: emailData.body,
+                from_name: 'Visitor Kiosk System'
+            }, 'YOUR_PUBLIC_KEY').then(function(response) {
+                console.log('Email sent successfully:', response);
+            }).catch(function(error) {
+                console.error('Email send error:', error);
+            });
+            */
+            
+            // OPTION 2: Your Backend API
+            // Create an API endpoint on your server to handle email sending
+            /*
+            fetch('/api/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer YOUR_API_KEY' // If using API authentication
+                },
+                body: JSON.stringify({
+                    to: emailData.to,
+                    subject: emailData.subject,
+                    body: emailData.body,
+                    from: 'noreply@yourcompany.com'
+                })
+            }).then(response => response.json())
+            .then(data => console.log('Email sent:', data))
+            .catch(error => console.error('Email send error:', error));
+            */
+            
+            // OPTION 3: Webhook Services (Zapier, Make.com, etc.)
+            // Create a webhook that receives the email data and sends emails
+            /*
+            fetch('https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(emailData)
+            }).catch(error => console.error('Webhook error:', error));
+            */
+            
+            // OPTION 4: SMTP.js (Client-side SMTP - requires email credentials)
+            // Download SMTP.js from https://smtpjs.com/
+            /*
+            Email.send({
+                Host: "smtp.yourprovider.com", // Your SMTP server
+                Username: "your-email@yourcompany.com", // Your email
+                Password: "your-app-password", // Your email app password
+                To: emailData.to,
+                From: "noreply@yourcompany.com",
+                Subject: emailData.subject,
+                Body: emailData.body
+            }).then(message => console.log('Email sent:', message));
+            */
+            
+            // FOR TESTING: Console log (remove in production)
+            console.log('Email would be sent:', emailData);
+            console.log('Configure email service in sendEmail() function');
+        }
+        
+        // Check if current date is a UK bank holiday
+        function isUKBankHoliday(date = new Date()) {
+            const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            return UK_BANK_HOLIDAYS.includes(dateString);
+        }
+        
+        // Check if current date is a weekend (Saturday = 6, Sunday = 0)
+        function isWeekend(date = new Date()) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+        
+        // Check if current time is a working day and within working hours
+        function isWorkingTime(date = new Date()) {
+            // Check if it's a weekend
+            if (isWeekend(date)) {
+                return false;
+            }
+            
+            // Check if it's a UK bank holiday
+            if (isUKBankHoliday(date)) {
+                return false;
+            }
+            
+            // Check if it's after working hours (6 PM)
+            const currentTime = date.toTimeString().slice(0, 5); // HH:MM format
+            if (currentTime >= AUTO_SIGNOUT_CONFIG.workingDayEndTime) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Automatic sign-out check
+        function checkAutoSignOut() {
+            if (!AUTO_SIGNOUT_CONFIG.enabled) return;
+            
+            const now = new Date();
+            
+            // If it's not working time, sign out everyone
+            if (!isWorkingTime(now)) {
+                const reason = getSignOutReason(now);
+                performAutoSignOut(reason);
+            }
+        }
+        
+        // Get the reason for automatic sign-out
+        function getSignOutReason(date = new Date()) {
+            if (isWeekend(date)) {
+                const day = date.getDay();
+                return day === 0 ? 'Weekend - Sunday' : 'Weekend - Saturday';
+            }
+            
+            if (isUKBankHoliday(date)) {
+                return 'UK Bank Holiday';
+            }
+            
+            const currentTime = date.toTimeString().slice(0, 5);
+            if (currentTime >= AUTO_SIGNOUT_CONFIG.workingDayEndTime) {
+                return 'After Working Hours (6 PM)';
+            }
+            
+            return 'Non-Working Time';
+        }
+        
+        // Perform automatic sign-out of all visitors and staff
+        function performAutoSignOut(reason) {
+            let signedOutCount = 0;
+            
+            // Sign out all visitors
+            visitors.forEach(visitor => {
+                if (!visitor.signedOut) {
+                    visitor.signedOut = true;
+                    visitor.signOutTime = new Date().toISOString();
+                    visitor.signOutReason = `Auto Sign-Out: ${reason}`;
+                    signedOutCount++;
+                }
+            });
+            
+            // Sign out all staff
+            const staffCount = signedInStaff.length;
+            signedInStaff.forEach(staff => {
+                staff.autoSignOutTime = new Date().toISOString();
+                staff.autoSignOutReason = `Auto Sign-Out: ${reason}`;
+            });
+            
+            if (staffCount > 0) {
+                signedInStaff = []; // Clear all signed-in staff
+                signedOutCount += staffCount;
+            }
+            
+            // Save changes
+            if (signedOutCount > 0) {
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
+                updateSignedInStaffDisplay();
+                
+                // Log the automatic sign-out
+                console.log(`Auto Sign-Out: ${signedOutCount} people signed out - ${reason}`);
+                
+                // Send notification email if enabled
+                if (EMAIL_CONFIG.enabled) {
+                    sendAutoSignOutNotification(signedOutCount, reason);
+                }
+            }
+        }
+        
+        // Send automatic sign-out notification email
+        function sendAutoSignOutNotification(count, reason) {
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `🏢 Automatic Sign-Out Notification - ${new Date().toLocaleDateString()}`,
+                body: generateAutoSignOutReport(count, reason)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Generate automatic sign-out report
+        function generateAutoSignOutReport(count, reason) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `AUTOMATIC SIGN-OUT NOTIFICATION\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `SIGN-OUT DETAILS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Reason: ${reason}\n`;
+            report += `People Signed Out: ${count}\n`;
+            report += `Time: ${timestamp}\n\n`;
+            
+            if (reason.includes('Weekend')) {
+                report += `All visitors and staff have been automatically signed out for the weekend.\n`;
+            } else if (reason.includes('Bank Holiday')) {
+                report += `All visitors and staff have been automatically signed out for the UK bank holiday.\n`;
+            } else if (reason.includes('After Working Hours')) {
+                report += `All visitors and staff have been automatically signed out after 6 PM.\n`;
+            }
+            
+            report += `\nBuilding is now recorded as empty.\n`;
+            report += `This is an automated notification from the Visitor Kiosk System.`;
+            
+            return report;
         }
         
         function cleanupOldRecords() {
@@ -1269,10 +1811,6 @@ const M365_CONFIG = {
             
             if (visitors.length !== oldVisitorCount) {
                 localStorage.setItem('visitors', JSON.stringify(visitors));
-                console.log(`Archived ${oldVisitorCount - visitors.length} visitor records older than 30 days`);
-                
-                // Log retention compliance
-                console.log(`Visitor data retention: ${visitors.length} records maintained within 30-day window`);
             }
             
             // Clean up old staff sign-in records (keep only current session)
@@ -1345,14 +1883,220 @@ const M365_CONFIG = {
             return deviceId;
         }
         
-        // Test M365 connection
-        function testM365Connection() {
-            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
-                showMessage('staffSuccess', '✅ M365 Configuration looks good! Try searching for a staff member to test the connection.');
+        // Security Functions
+        function isSystemLockedOut() {
+            if (!SECURITY_CONFIG.enabled) return false;
+            
+            const now = new Date();
+            if (lockoutStatus.lockoutEnd && new Date(lockoutStatus.lockoutEnd) > now) {
+                return true;
+            }
+            
+            // Clear expired lockout
+            if (lockoutStatus.lockoutEnd && new Date(lockoutStatus.lockoutEnd) <= now) {
+                lockoutStatus = {};
+                localStorage.setItem('lockoutStatus', JSON.stringify(lockoutStatus));
+                hideLockoutMessage();
+            }
+            
+            return false;
+        }
+        
+        function recordFailedPinAttempt(pin) {
+            if (!SECURITY_CONFIG.enabled) {
+                showMessage('staffError', 'Invalid PIN. Please try again or search for your name below.', true);
+                return;
+            }
+            
+            const now = new Date();
+            const deviceId = getDeviceId();
+            
+            // Initialize attempts for this device if not exists
+            if (!pinAttempts[deviceId]) {
+                pinAttempts[deviceId] = {
+                    count: 0,
+                    lastAttempt: now.toISOString(),
+                    attempts: []
+                };
+            }
+            
+            // Record this attempt
+            pinAttempts[deviceId].count++;
+            pinAttempts[deviceId].lastAttempt = now.toISOString();
+            pinAttempts[deviceId].attempts.push({
+                pin: pin,
+                timestamp: now.toISOString(),
+                ip: 'kiosk-device' // In production, get actual IP
+            });
+            
+            localStorage.setItem('pinAttempts', JSON.stringify(pinAttempts));
+            
+            const remainingAttempts = SECURITY_CONFIG.maxPinAttempts - pinAttempts[deviceId].count;
+            
+            if (pinAttempts[deviceId].count >= SECURITY_CONFIG.maxPinAttempts) {
+                // Lock out the system
+                lockoutStatus = {
+                    lockedOut: true,
+                    lockoutStart: now.toISOString(),
+                    lockoutEnd: new Date(now.getTime() + (SECURITY_CONFIG.lockoutDuration * 60000)).toISOString(),
+                    deviceId: deviceId,
+                    totalAttempts: pinAttempts[deviceId].count
+                };
+                
+                localStorage.setItem('lockoutStatus', JSON.stringify(lockoutStatus));
+                
+                // Send security alert email
+                sendSecurityAlert();
+                
+                showLockoutMessage(`System locked due to ${SECURITY_CONFIG.maxPinAttempts} failed PIN attempts. Try again in ${SECURITY_CONFIG.lockoutDuration} minutes.`);
             } else {
-                showMessage('staffError', '❌ M365 not configured. Please complete Step 6 in the setup guide.', true);
+                showMessage('staffError', `Invalid PIN. ${remainingAttempts} attempts remaining before lockout.`, true);
             }
         }
+        
+        function resetPinAttempts() {
+            const deviceId = getDeviceId();
+            if (pinAttempts[deviceId]) {
+                delete pinAttempts[deviceId];
+                localStorage.setItem('pinAttempts', JSON.stringify(pinAttempts));
+            }
+            hideLockoutMessage();
+        }
+        
+        function checkLockoutStatus() {
+            if (isSystemLockedOut()) {
+                const lockoutEnd = new Date(lockoutStatus.lockoutEnd);
+                const remainingTime = Math.ceil((lockoutEnd - new Date()) / 60000);
+                showLockoutMessage(`System locked due to multiple failed PIN attempts. Try again in ${remainingTime} minutes.`);
+                
+                // Disable PIN input
+                const pinInput = document.getElementById('pinInput');
+                if (pinInput) {
+                    pinInput.disabled = true;
+                    pinInput.placeholder = 'System Locked';
+                }
+            }
+        }
+        
+        function showLockoutMessage(message) {
+            const lockoutElement = document.getElementById('lockoutMessage');
+            if (lockoutElement) {
+                lockoutElement.textContent = message;
+                lockoutElement.style.display = 'block';
+            }
+            
+            // Disable PIN input
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) {
+                pinInput.disabled = true;
+                pinInput.placeholder = 'System Locked';
+            }
+        }
+        
+        function hideLockoutMessage() {
+            const lockoutElement = document.getElementById('lockoutMessage');
+            if (lockoutElement) {
+                lockoutElement.style.display = 'none';
+            }
+            
+            // Re-enable PIN input
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) {
+                pinInput.disabled = false;
+                pinInput.placeholder = 'Enter 4-digit PIN';
+            }
+        }
+        
+        function sendSecurityAlert() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const deviceId = getDeviceId();
+            const attempts = pinAttempts[deviceId] || {};
+            
+            const emailData = {
+                to: SECURITY_CONFIG.adminEmail,
+                subject: `🚨 SECURITY ALERT: Kiosk System Lockout - ${new Date().toLocaleString()}`,
+                body: generateSecurityAlertReport(attempts)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        function generateSecurityAlertReport(attempts) {
+            const timestamp = new Date().toLocaleString();
+            const deviceId = getDeviceId();
+            
+            let report = `SECURITY ALERT - KIOSK SYSTEM LOCKOUT\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${deviceId}\n\n`;
+            
+            report += `LOCKOUT DETAILS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Failed PIN Attempts: ${attempts.count || 0}\n`;
+            report += `Lockout Duration: ${SECURITY_CONFIG.lockoutDuration} minutes\n`;
+            report += `Last Attempt: ${attempts.lastAttempt ? new Date(attempts.lastAttempt).toLocaleString() : 'N/A'}\n\n`;
+            
+            if (attempts.attempts && attempts.attempts.length > 0) {
+                report += `ATTEMPT HISTORY:\n`;
+                report += `${'='.repeat(30)}\n`;
+                attempts.attempts.forEach((attempt, index) => {
+                    report += `${index + 1}. PIN: ${attempt.pin} at ${new Date(attempt.timestamp).toLocaleString()}\n`;
+                });
+                report += `\n`;
+            }
+            
+            report += `RECOMMENDED ACTIONS:\n`;
+            report += `- Review physical security around the kiosk device\n`;
+            report += `- Check for unauthorized access attempts\n`;
+            report += `- Consider changing staff PINs if compromised\n`;
+            report += `- Monitor for additional security incidents\n\n`;
+            
+            report += `This is an automated security alert from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Admin Notice Functions
+        function initializeAdminNotice() {
+            if (ADMIN_CONFIG.noticesEnabled && ADMIN_CONFIG.currentNotice) {
+                showAdminNotice(ADMIN_CONFIG.currentNotice, ADMIN_CONFIG.noticeType);
+            }
+        }
+        
+        function showAdminNotice(message, type = 'info') {
+            const noticeElement = document.getElementById('adminNotice');
+            const textElement = document.getElementById('noticeText');
+            
+            if (noticeElement && textElement) {
+                textElement.textContent = message;
+                noticeElement.className = `admin-notice ${type}`;
+                noticeElement.style.display = 'block';
+                
+                // Auto-dismiss info notices after 30 seconds
+                if (type === 'info') {
+                    setTimeout(() => {
+                        dismissNotice();
+                    }, 30000);
+                }
+            }
+        }
+        
+        function dismissNotice() {
+            const noticeElement = document.getElementById('adminNotice');
+            if (noticeElement) {
+                noticeElement.style.display = 'none';
+            }
+        }
+        
+        // Example admin notice configurations (update these as needed):
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'Fire drill scheduled for today at 2 PM. Please follow evacuation procedures.';
+        // ADMIN_CONFIG.noticeType = 'warning';
+        
+        // ADMIN_CONFIG.currentNotice = 'COVID-19 restrictions: Please maintain social distancing and wear masks in common areas.';
+        // ADMIN_CONFIG.noticeType = 'info';
+        
+
         
         // Handle modal clicks outside content
         window.onclick = function(event) {
@@ -1368,6 +2112,5 @@ const M365_CONFIG = {
         // Initialize app when page loads
         init();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993b9c20e13563d2',t:'MTc2MTMzMTMwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993bcbc9c41bbd9b',t:'MTc2MTMzMzI1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
