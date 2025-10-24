@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>Visitor & Staff Kiosk</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            position: fixed;
+            width: 100%;
+        }
+        
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .kiosk-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+        
+        .header .date-time {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .kiosk-layout {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            align-items: stretch;
+        }
+        
+        .sign-option {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .sign-option:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .sign-option .icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .sign-option h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin: 0 0 15px 0;
+        }
+        
+        .sign-option p {
+            color: #666;
+            font-size: 1rem;
+            margin: 0;
+        }
+        
+        .visitor-option {
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .staff-option {
+            border-left: 5px solid #2196F3;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 0;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+            padding: 10px;
+            z-index: 10;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .close-btn:active {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .photo-section {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px auto;
+            background: #f9f9f9;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-placeholder {
+            color: #999;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 8px;
+            min-width: 120px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .btn:active {
+            background: #45a049;
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+        }
+        
+        .btn-secondary:active {
+            background: #1976D2;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-danger:active {
+            background: #d32f2f;
+        }
+        
+        .emergency-banner {
+            background: #ff4444;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .status-display {
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .visitor-list {
+            max-height: 250px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .visitor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .visitor-item:last-child {
+            border-bottom: none;
+        }
+        
+        .visitor-info {
+            flex: 1;
+        }
+        
+        .visitor-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        
+        .visitor-details {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .sign-out-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .sign-out-btn:active {
+            background: #cc0000;
+        }
+        
+        .emergency-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+        
+        .emergency-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,68,68,0.4);
+            animation: emergencyPulse 3s infinite;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        @keyframes emergencyPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .config-section {
+            background: #f0f8ff;
+            border: 1px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .config-section h4 {
+            margin: 0 0 10px 0;
+            color: #2196F3;
+        }
+        
+        .admin-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 0;
+            position: relative;
+        }
+        
+        .admin-notice.warning {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .admin-notice.alert {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            animation: noticeFlash 2s infinite;
+        }
+        
+        @keyframes noticeFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .notice-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notice-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notice-text {
+            flex: 1;
+            font-weight: 500;
+            color: #856404;
+        }
+        
+        .admin-notice.warning .notice-text {
+            color: #721c24;
+        }
+        
+        .notice-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #856404;
+            padding: 0 5px;
+        }
+        
+        .admin-notice.warning .notice-close {
+            color: #721c24;
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .gdpr-notice {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .gdpr-notice p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .lockout-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Android-specific optimizations */
+        @media screen and (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header .date-time {
+                font-size: 0.9rem;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .kiosk-layout {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .sign-option {
+                padding: 30px 20px;
+                min-height: 200px;
+            }
+            
+            .sign-option .icon {
+                font-size: 3rem;
+                margin-bottom: 15px;
+            }
+            
+            .sign-option h2 {
+                font-size: 1.3rem;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .photo-preview {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+                margin: 5px;
+            }
+            
+            .gdpr-notice p {
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Landscape orientation adjustments */
+        @media screen and (orientation: landscape) and (max-height: 600px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .sign-option {
+                min-height: 200px;
+                padding: 25px 15px;
+            }
+            
+            .footer {
+                padding: 10px;
+            }
+            
+            .gdpr-notice p {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <div class="emergency-banner" id="emergencyBanner">
+            🚨 FIRE EVACUATION IN PROGRESS - PLEASE EXIT THE BUILDING IMMEDIATELY 🚨
+        </div>
+        
+        <header class="header">
+            <h1>Welcome to Our Facility</h1>
+            <div class="date-time" id="dateTime"></div>
+        </header>
+        
+        <div id="adminNotice" class="admin-notice" style="display: none;">
+            <div class="notice-content">
+                <span class="notice-icon">📢</span>
+                <span class="notice-text" id="noticeText"></span>
+                <button class="notice-close" onclick="dismissNotice()">&times;</button>
+            </div>
+        </div>
+        
+        <main class="main-content">
+            <div class="kiosk-layout">
+                <div class="sign-option visitor-option" onclick="openVisitorModal()">
+                    <div class="icon">👥</div>
+                    <h2>Visitor Sign In</h2>
+                    <p>New visitors and guests</p>
+                </div>
+                
+                <div class="sign-option staff-option" onclick="openStaffModal()">
+                    <div class="icon">👔</div>
+                    <h2>Staff Sign In/Out</h2>
+                    <p>Employees and team members</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="gdpr-notice">
+                <p><strong>Data Protection Notice:</strong> By using this system, you consent to the collection and processing of your personal data for security, safety, and visitor management purposes in accordance with GDPR. Your data will be retained for 30 days and may be shared with emergency services if required. For more information, contact our Data Protection Officer.</p>
+            </div>
+        </footer>
+        
+        <div class="emergency-controls">
+            <button class="emergency-btn" onclick="toggleEmergency()" title="Emergency Evacuation & Alert">
+                🚨
+            </button>
+        </div>
+    </div>
+    
+    <!-- Visitor Modal -->
+    <div id="visitorModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('visitorModal')">&times;</button>
+            <h2>Visitor Sign In</h2>
+            
+            <div class="success-message" id="visitorSuccess"></div>
+            <div class="error-message" id="visitorError"></div>
+            
+            <form id="visitorForm" onsubmit="handleVisitorSignIn(event)">
+                <div class="form-group">
+                    <label for="visitorName">Full Name *</label>
+                    <input type="text" id="visitorName" name="visitorName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visitorEmail">Email Address *</label>
+                    <input type="email" id="visitorEmail" name="visitorEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visitorPhone">Phone Number</label>
+                    <input type="tel" id="visitorPhone" name="visitorPhone">
+                </div>
+                
+                <div class="form-group">
+                    <label for="visitorCompany">Company/Organization</label>
+                    <input type="text" id="visitorCompany" name="visitorCompany">
+                </div>
+                
+                <div class="form-group">
+                    <label for="hostName">Host/Person to Visit *</label>
+                    <input type="text" id="hostName" name="hostName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visitPurpose">Purpose of Visit</label>
+                    <select id="visitPurpose" name="visitPurpose">
+                        <option value="">Select purpose</option>
+                        <option value="meeting">Business Meeting</option>
+                        <option value="interview">Interview</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="photo-section">
+                    <label>Visitor Photo *</label>
+                    <div class="photo-preview" id="photoPreview">
+                        <div class="photo-placeholder">
+                            📷<br>Tap to take photo
+                        </div>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" capture="user" style="display: none;" onchange="handlePhotoCapture(event)">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoInput').click()">
+                        Take Photo
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="agreementCheck" required style="width: auto; margin-right: 10px;">
+                        I agree to follow all facility safety protocols and acknowledge that my visit is being recorded for security purposes.
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gdprConsentVisitor" required style="width: auto; margin-right: 10px;">
+                        <strong>GDPR Consent:</strong> I consent to the collection, processing, and storage of my personal data (name, email, phone, company, photo) for visitor management, security, and safety purposes. I understand this data will be retained for 30 days and may be shared with emergency services if required. I can request access, correction, or deletion of my data by contacting the Data Protection Officer.
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn">Sign In Visitor</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('visitorModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Staff Modal -->
+    <div id="staffModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('staffModal')">&times;</button>
+            <h2>Staff Sign In/Out</h2>
+            
+            <div class="success-message" id="staffSuccess"></div>
+            <div class="error-message" id="staffError"></div>
+            <div class="lockout-message" id="lockoutMessage" style="display: none;"></div>
+            
+            <!-- ABS365 Configuration Status -->
+            <div class="config-section">
+                <h4>🔧 ABS365 Integration Status</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;" id="abs365StatusText">
+                    Configure your tenant details in the code to enable directory search.
+                </p>
+            </div>
+            
+            <div class="config-section" id="workingTimeStatus">
+                <h4>🕐 Working Time Status</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;" id="workingTimeText">
+                    Checking working hours...
+                </p>
+            </div>
+            
+            <!-- PIN Sign In Section -->
+            <div class="form-group">
+                <label for="pinInput">Enter Your PIN</label>
+                <input type="password" id="pinInput" placeholder="Enter 4-digit PIN" maxlength="4" oninput="handlePinInput(this.value)" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span style="color: #666;">OR</span>
+            </div>
+            
+            <!-- Staff Search Section -->
+            <div class="form-group">
+                <label for="staffSearch">Search Staff Directory</label>
+                <input type="text" id="staffSearch" placeholder="Search by name, email, or department" oninput="searchStaff(this.value)">
+                <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                    <span id="m365Status">M365 Integration: Not Configured</span>
+                </div>
+            </div>
+            
+            <div id="staffResults" class="visitor-list" style="display: none;">
+                <!-- Staff search results will appear here -->
+            </div>
+            
+            <div class="status-display">
+                <h3>Currently Signed In Staff</h3>
+                <div id="signedInStaff" class="visitor-list">
+                    <!-- Signed in staff will appear here -->
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="exportVisitorData()" style="margin: 5px;">
+                    📊 Export Data
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="showVisitorStats()" style="margin: 5px;">
+                    📈 View Stats
+                </button>
+            </div>
+            
+            <button type="button" class="btn btn-secondary" onclick="closeModal('staffModal')">Close</button>
+        </div>
+    </div>
+    
+    <!-- PIN Registration Modal -->
+    <div id="pinRegistrationModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('pinRegistrationModal')">&times;</button>
+            <h2>Register Your PIN</h2>
+            
+            <div class="success-message" id="pinSuccess"></div>
+            <div class="error-message" id="pinError"></div>
+            
+            <div id="selectedUserInfo" class="status-display" style="margin: 20px 0;">
+                <!-- Selected user info will appear here -->
+            </div>
+            
+            <form id="pinRegistrationForm" onsubmit="handlePinRegistration(event)">
+                <div class="form-group">
+                    <label for="newPin">Create 4-Digit PIN *</label>
+                    <input type="password" id="newPin" name="newPin" placeholder="Enter 4-digit PIN" maxlength="4" required style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;" oninput="validatePinInput(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPin">Confirm PIN *</label>
+                    <input type="password" id="confirmPin" name="confirmPin" placeholder="Re-enter PIN" maxlength="4" required style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;" oninput="validatePinInput(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="pinAgreement" required style="width: auto; margin-right: 10px;">
+                        I understand this PIN will be used for secure access to the kiosk system and I am responsible for keeping it confidential.
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gdprConsentStaff" required style="width: auto; margin-right: 10px;">
+                        <strong>GDPR Consent:</strong> I consent to the collection, processing, and storage of my personal data (name, department, sign-in times, PIN) for staff management, security, and safety purposes. I understand this data will be retained for 30 days and may be shared with emergency services if required.
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn">Register PIN</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('pinRegistrationModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+
+
+    <script>
+        // Global state management
+        let visitors = JSON.parse(localStorage.getItem('visitors') || '[]');
+        let staff = JSON.parse(localStorage.getItem('staff') || '[]');
+        let signedInStaff = JSON.parse(localStorage.getItem('signedInStaff') || '[]');
+        let emergencyMode = false;
+        
+        // ============================================
+        // CONFIGURATION SECTION - EDIT THESE VALUES
+        // ============================================
+        
+        // Microsoft 365 Integration Configuration
+        // To enable M365 directory search, you need to:
+        // 1. Register an app in Azure AD (https://portal.azure.com)
+        // 2. Grant Microsoft Graph API permissions (User.Read.All)
+        // 3. Get your Tenant ID and Client ID from Azure AD
+        const M365_CONFIG = {
+            tenantId: '', // REPLACE: Your M365 Tenant ID (e.g., 'your-company.onmicrosoft.com')
+            clientId: '', // REPLACE: Your App Registration Client ID (e.g., '12345678-1234-1234-1234-123456789012')
+            apiEndpoint: 'https://graph.microsoft.com/v1.0/users',
+            enabled: false // CHANGE TO TRUE: Set to true after completing M365 setup
+        };
+        
+        // Email Configuration for Reports and Alerts
+        // Replace with your actual email addresses and SMTP settings
+        const EMAIL_CONFIG = {
+            evacuationEmail: 'admin@yourcompany.com', // REPLACE: Email for emergency evacuation reports
+            securityEmail: 'security@yourcompany.com', // REPLACE: Email for security alerts (PIN lockouts)
+            dailyReportTime: '12:00', // CUSTOMIZE: Noon daily report (24-hour format)
+            eveningReportTime: '18:00', // CUSTOMIZE: 6 PM daily report (24-hour format)
+            enabled: true // CHANGE TO FALSE: Set to false to disable all email reports
+        };
+        
+        // Automatic Sign-Out Configuration
+        // Automatically signs out all users after working hours, weekends, and bank holidays
+        const AUTO_SIGNOUT_CONFIG = {
+            workingDayEndTime: '18:00', // CUSTOMIZE: Auto sign-out time on working days (24-hour format)
+            enabled: true, // CHANGE TO FALSE: Set to false to disable automatic sign-out
+            checkInterval: 60000 // ADVANCED: Check every minute (60000ms) - don't change unless needed
+        };
+        
+        // Security Configuration for PIN Protection
+        // Protects against brute force PIN attacks
+        const SECURITY_CONFIG = {
+            maxPinAttempts: 3, // CUSTOMIZE: Maximum PIN attempts before lockout (recommended: 3-5)
+            lockoutDuration: 30, // CUSTOMIZE: Lockout duration in minutes (recommended: 15-60)
+            adminEmail: 'admin@yourcompany.com', // REPLACE: Admin email for security alerts
+            enabled: true // CHANGE TO FALSE: Set to false to disable security lockout
+        };
+        
+        // Admin Notice Configuration
+        // Display important notices to all users (fire drills, COVID restrictions, etc.)
+        const ADMIN_CONFIG = {
+            noticesEnabled: false, // CHANGE TO TRUE: Set to true to show admin notices
+            currentNotice: '', // REPLACE: Current admin notice text (e.g., 'Fire drill today at 2 PM')
+            noticeType: 'info' // CUSTOMIZE: 'info' (yellow), 'warning' (orange), 'alert' (red, flashing)
+        };
+        
+        // Example Admin Notice Configurations:
+        // Fire Drill Notice:
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'Fire drill scheduled for today at 2 PM. Please follow evacuation procedures.';
+        // ADMIN_CONFIG.noticeType = 'warning';
+        
+        // COVID Restrictions Notice:
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'COVID-19 restrictions: Please maintain social distancing and wear masks.';
+        // ADMIN_CONFIG.noticeType = 'info';
+        // ============================================
+        
+        // Local staff directory (populated from M365 or manual entry)
+        let staffDirectory = JSON.parse(localStorage.getItem('staffDirectory') || '[]');
+        
+        // Store registered PINs (in production, this would be in secure backend)
+        let registeredPins = JSON.parse(localStorage.getItem('registeredPins') || '{}');
+        
+        // Security tracking
+        let pinAttempts = JSON.parse(localStorage.getItem('pinAttempts') || '{}');
+        let lockoutStatus = JSON.parse(localStorage.getItem('lockoutStatus') || '{}');
+        
+        // UK Bank Holidays (update annually)
+        const UK_BANK_HOLIDAYS = [
+            // 2024 Bank Holidays
+            '2024-01-01', // New Year's Day
+            '2024-03-29', // Good Friday
+            '2024-04-01', // Easter Monday
+            '2024-05-06', // Early May Bank Holiday
+            '2024-05-27', // Spring Bank Holiday
+            '2024-08-26', // Summer Bank Holiday
+            '2024-12-25', // Christmas Day
+            '2024-12-26', // Boxing Day
+            
+            // 2025 Bank Holidays
+            '2025-01-01', // New Year's Day
+            '2025-04-18', // Good Friday
+            '2025-04-21', // Easter Monday
+            '2025-05-05', // Early May Bank Holiday
+            '2025-05-26', // Spring Bank Holiday
+            '2025-08-25', // Summer Bank Holiday
+            '2025-12-25', // Christmas Day
+            '2025-12-26', // Boxing Day
+            
+            // Add more years as needed
+        ];
+        
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Prevent context menu on long press
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Initialize the app
+        function init() {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            cleanupOldRecords();
+            updateSignedInStaffDisplay();
+            updateM365Status();
+            updateWorkingTimeStatus();
+            checkM365Connection();
+            initializeAdminNotice();
+            checkLockoutStatus();
+            
+            // Auto-cleanup every hour
+            setInterval(cleanupOldRecords, 3600000);
+            
+            // Check for scheduled email reports every minute
+            setInterval(checkScheduledEmails, 60000);
+            
+            // Check for SharePoint monthly uploads every minute
+            if (SHAREPOINT_CONFIG.enabled) {
+                setInterval(checkSharePointUpload, 60000);
+            }
+            
+            // Check for automatic sign-out conditions
+            if (AUTO_SIGNOUT_CONFIG.enabled) {
+                setInterval(checkAutoSignOut, AUTO_SIGNOUT_CONFIG.checkInterval);
+                // Update working time status every minute
+                setInterval(updateWorkingTimeStatus, 60000);
+            }
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', function() {
+                setTimeout(function() {
+                    window.scrollTo(0, 0);
+                }, 100);
+            });
+        }
+        
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('dateTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        function updateM365Status() {
+            const statusElement = document.getElementById('m365Status');
+            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
+                statusElement.textContent = 'ABS365: Connected';
+                statusElement.style.color = '#4CAF50';
+            } else {
+                statusElement.textContent = 'ABS365: Not Configured';
+                statusElement.style.color = '#ff4444';
+            }
+        }
+        
+        function updateWorkingTimeStatus() {
+            const statusText = document.getElementById('workingTimeText');
+            const now = new Date();
+            
+            if (isWorkingTime(now)) {
+                statusText.textContent = '✅ Currently working hours - Sign-ins allowed';
+                statusText.style.color = '#4CAF50';
+            } else {
+                const reason = getSignOutReason(now);
+                statusText.textContent = `🔒 Non-working time (${reason}) - Auto sign-out active`;
+                statusText.style.color = '#ff6b35';
+            }
+        }
+        
+        // Check M365 connection status
+        async function checkM365Connection() {
+            const statusText = document.getElementById('abs365StatusText');
+            
+            if (!M365_CONFIG.enabled || !M365_CONFIG.tenantId || !M365_CONFIG.clientId) {
+                statusText.textContent = 'Configure your tenant details in the code to enable directory search.';
+                statusText.style.color = '#666';
+                return false;
+            }
+            
+            try {
+                // Test connection to Microsoft Graph
+                const response = await fetch(`${M365_CONFIG.apiEndpoint}?$top=1`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    statusText.textContent = '✅ ABS365 connection verified and ready.';
+                    statusText.style.color = '#4CAF50';
+                    return true;
+                } else {
+                    statusText.textContent = '❌ ABS365 connection failed. Check configuration.';
+                    statusText.style.color = '#ff4444';
+                    return false;
+                }
+            } catch (error) {
+                statusText.textContent = '❌ ABS365 connection error. Check network and configuration.';
+                statusText.style.color = '#ff4444';
+                return false;
+            }
+        }
+        
+        function openVisitorModal() {
+            document.getElementById('visitorModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            clearMessages();
+        }
+        
+        function openStaffModal() {
+            document.getElementById('staffModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            updateSignedInStaffDisplay();
+            updateM365Status();
+            clearMessages();
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'hidden';
+            if (modalId === 'visitorModal') {
+                document.getElementById('visitorForm').reset();
+                resetPhotoPreview();
+            }
+            if (modalId === 'staffModal') {
+                document.getElementById('staffSearch').value = '';
+                document.getElementById('staffResults').style.display = 'none';
+                document.getElementById('pinInput').value = '';
+            }
+            if (modalId === 'pinRegistrationModal') {
+                document.getElementById('pinRegistrationForm').reset();
+            }
+        }
+        
+        function openPinRegistration(staffId) {
+            const staff = staffDirectory.find(s => s.id === staffId);
+            if (!staff) return;
+            
+            // Show selected user info
+            document.getElementById('selectedUserInfo').innerHTML = `
+                <h4>Setting PIN for:</h4>
+                <div class="visitor-name">${staff.name || staff.displayName}</div>
+                <div class="visitor-details">${staff.jobTitle || 'N/A'} - ${staff.department || 'N/A'}</div>
+                <div class="visitor-details" style="font-size: 0.9rem; color: #666;">${staff.email || staff.mail || staff.userPrincipalName}</div>
+            `;
+            
+            // Store selected staff ID for registration
+            document.getElementById('pinRegistrationForm').dataset.staffId = staffId;
+            
+            // Close staff modal and open PIN registration
+            closeModal('staffModal');
+            document.getElementById('pinRegistrationModal').style.display = 'block';
+            clearMessages();
+        }
+        
+        function validatePinInput(input) {
+            // Only allow numbers
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+        
+        function handlePinRegistration(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const staffId = event.target.dataset.staffId;
+            const newPin = formData.get('newPin');
+            const confirmPin = formData.get('confirmPin');
+            
+            // Validation
+            if (newPin.length !== 4) {
+                showMessage('pinError', 'PIN must be exactly 4 digits.', true);
+                return;
+            }
+            
+            if (newPin !== confirmPin) {
+                showMessage('pinError', 'PINs do not match. Please try again.', true);
+                return;
+            }
+            
+            // Check if PIN is already in use
+            const existingUser = Object.keys(registeredPins).find(id => registeredPins[id] === newPin);
+            if (existingUser && existingUser !== staffId) {
+                showMessage('pinError', 'This PIN is already in use. Please choose a different PIN.', true);
+                return;
+            }
+            
+            // Register the PIN
+            registeredPins[staffId] = newPin;
+            localStorage.setItem('registeredPins', JSON.stringify(registeredPins));
+            
+            const staff = staffDirectory.find(s => s.id === staffId);
+            showMessage('pinSuccess', `PIN successfully registered for ${staff.name || staff.displayName}! You can now use your PIN for quick sign-in.`);
+            
+            // PIN registered successfully
+            
+            // Close modal after 3 seconds
+            setTimeout(() => {
+                closeModal('pinRegistrationModal');
+                openStaffModal(); // Return to staff modal
+            }, 3000);
+        }
+        
+        function clearMessages() {
+            document.getElementById('visitorSuccess').style.display = 'none';
+            document.getElementById('visitorError').style.display = 'none';
+            document.getElementById('staffSuccess').style.display = 'none';
+            document.getElementById('staffError').style.display = 'none';
+            document.getElementById('pinSuccess').style.display = 'none';
+            document.getElementById('pinError').style.display = 'none';
+        }
+        
+        function showMessage(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+        
+        function handleVisitorSignIn(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const photoInput = document.getElementById('photoInput');
+            
+            if (!photoInput.files[0]) {
+                showMessage('visitorError', 'Please take a photo before signing in.', true);
+                return;
+            }
+            
+            const visitor = {
+                id: 'VIS' + Date.now(),
+                name: formData.get('visitorName'),
+                email: formData.get('visitorEmail'),
+                phone: formData.get('visitorPhone'),
+                company: formData.get('visitorCompany'),
+                host: formData.get('hostName'),
+                purpose: formData.get('visitPurpose'),
+                signInTime: new Date().toISOString(),
+                photo: document.querySelector('#photoPreview img')?.src || null,
+                signedOut: false,
+                deviceId: getDeviceId()
+            };
+            
+            visitors.push(visitor);
+            localStorage.setItem('visitors', JSON.stringify(visitors));
+            
+            // Visitor signed in successfully
+            
+            showMessage('visitorSuccess', `Welcome ${visitor.name}! You have been successfully signed in. Please wait for your host.`);
+            
+            // Reset form after 3 seconds
+            setTimeout(() => {
+                closeModal('visitorModal');
+            }, 3000);
+        }
+        
+        function handlePhotoCapture(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Visitor photo">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function resetPhotoPreview() {
+            document.getElementById('photoPreview').innerHTML = `
+                <div class="photo-placeholder">
+                    📷<br>Tap to take photo
+                </div>
+            `;
+        }
+        
+        function handlePinInput(pin) {
+            // Check if system is locked out
+            if (isSystemLockedOut()) {
+                const lockoutEnd = new Date(lockoutStatus.lockoutEnd);
+                const remainingTime = Math.ceil((lockoutEnd - new Date()) / 60000);
+                showLockoutMessage(`System locked due to multiple failed PIN attempts. Try again in ${remainingTime} minutes.`);
+                document.getElementById('pinInput').value = '';
+                return;
+            }
+            
+            // Only process when PIN is 4 digits
+            if (pin.length === 4) {
+                const staff = findStaffByPin(pin);
+                if (staff) {
+                    // Successful PIN - reset attempts
+                    resetPinAttempts();
+                    // Auto sign in/out with PIN
+                    toggleStaffSignIn(staff.id, staff.name || staff.displayName, staff.department || 'N/A');
+                    document.getElementById('pinInput').value = '';
+                } else {
+                    // Failed PIN attempt
+                    recordFailedPinAttempt(pin);
+                    document.getElementById('pinInput').value = '';
+                }
+            }
+        }
+        
+        function findStaffByPin(pin) {
+            const staffId = Object.keys(registeredPins).find(id => registeredPins[id] === pin);
+            return staffId ? staffDirectory.find(staff => staff.id === staffId) : null;
+        }
+        
+        async function searchStaff(query) {
+            const resultsDiv = document.getElementById('staffResults');
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Show loading state
+            resultsDiv.innerHTML = '<div class="visitor-item">Searching directory...</div>';
+            resultsDiv.style.display = 'block';
+            
+            let searchResults = [];
+            
+            if (M365_CONFIG.enabled && M365_CONFIG.tenantId && M365_CONFIG.clientId) {
+                // Real M365 Search via Microsoft Graph API
+                try {
+                    searchResults = await searchM365Users(query);
+                } catch (error) {
+                    console.error('M365 Search Error:', error);
+                    resultsDiv.innerHTML = '<div class="visitor-item">M365 connection error. Please check configuration.</div>';
+                    return;
+                }
+            } else {
+                // Local directory search (fallback)
+                searchResults = staffDirectory.filter(staff => 
+                    (staff.name && staff.name.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.displayName && staff.displayName.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.id && staff.id.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.department && staff.department.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.email && staff.email.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.mail && staff.mail.toLowerCase().includes(query.toLowerCase())) ||
+                    (staff.jobTitle && staff.jobTitle.toLowerCase().includes(query.toLowerCase()))
+                );
+            }
+            
+            if (searchResults.length > 0) {
+                resultsDiv.innerHTML = searchResults.map(staff => `
+                    <div class="visitor-item">
+                        <div class="visitor-info">
+                            <div class="visitor-name">${staff.name || staff.displayName}</div>
+                            <div class="visitor-details">${staff.jobTitle || 'N/A'} - ${staff.department || 'N/A'}</div>
+                            <div class="visitor-details" style="font-size: 0.75rem; color: #888;">${staff.email || staff.mail || staff.userPrincipalName}</div>
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-direction: column;">
+                            <button class="btn" onclick="toggleStaffSignIn('${staff.id}', '${staff.name || staff.displayName}', '${staff.department || 'N/A'}')" style="min-width: 80px; padding: 6px 10px; font-size: 0.85rem;">
+                                ${isStaffSignedIn(staff.id) ? 'Sign Out' : 'Sign In'}
+                            </button>
+                            ${!registeredPins[staff.id] ? `
+                                <button class="btn btn-secondary" onclick="openPinRegistration('${staff.id}')" style="min-width: 80px; padding: 6px 10px; font-size: 0.8rem;">
+                                    Set PIN
+                                </button>
+                            ` : `
+                                <span style="font-size: 0.7rem; color: #4CAF50; text-align: center;">✓ PIN Set</span>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                if (M365_CONFIG.enabled) {
+                    resultsDiv.innerHTML = '<div class="visitor-item">No users found in M365 directory</div>';
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="visitor-item">
+                            <div class="visitor-info">
+                                <div class="visitor-name">M365 Not Connected</div>
+                                <div class="visitor-details">Configure M365 integration to search your organization directory</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Microsoft Graph API integration
+        async function searchM365Users(query) {
+            if (!M365_CONFIG.enabled || !M365_CONFIG.tenantId || !M365_CONFIG.clientId) {
+                return [];
+            }
+            
+            try {
+                const response = await fetch(`${M365_CONFIG.apiEndpoint}?$search="displayName:${query}"&$select=id,displayName,mail,jobTitle,department,userPrincipalName`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAccessToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.value || [];
+                } else {
+                    console.error('M365 Search Error:', response.status);
+                    return [];
+                }
+            } catch (error) {
+                console.error('M365 Search Error:', error);
+                return [];
+            }
+        }
+        
+        // Get access token for M365 (implement based on your auth method)
+        function getAccessToken() {
+            // This should return your valid access token
+            // Implementation depends on your authentication setup
+            return localStorage.getItem('m365AccessToken') || '';
+        }
+        
+        function isStaffSignedIn(staffId) {
+            return signedInStaff.some(staff => staff.id === staffId);
+        }
+        
+        function toggleStaffSignIn(staffId, staffName, department) {
+            const existingIndex = signedInStaff.findIndex(staff => staff.id === staffId);
+            
+            if (existingIndex >= 0) {
+                // Sign out
+                signedInStaff.splice(existingIndex, 1);
+                showMessage('staffSuccess', `${staffName} has been signed out.`);
+            } else {
+                // Sign in
+                signedInStaff.push({
+                    id: staffId,
+                    name: staffName,
+                    department: department,
+                    signInTime: new Date().toISOString(),
+                    deviceId: getDeviceId()
+                });
+                showMessage('staffSuccess', `${staffName} has been signed in.`);
+            }
+            
+            localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
+            updateSignedInStaffDisplay();
+            
+            // Refresh search results
+            const searchValue = document.getElementById('staffSearch').value;
+            if (searchValue.length >= 2) {
+                searchStaff(searchValue);
+            }
+            
+            // Staff status updated
+        }
+        
+        function updateSignedInStaffDisplay() {
+            const container = document.getElementById('signedInStaff');
+            
+            if (signedInStaff.length === 0) {
+                container.innerHTML = '<div class="visitor-item">No staff currently signed in</div>';
+                return;
+            }
+            
+            container.innerHTML = signedInStaff.map(staff => `
+                <div class="visitor-item">
+                    <div class="visitor-info">
+                        <div class="visitor-name">${staff.name}</div>
+                        <div class="visitor-details">${staff.department} - ${new Date(staff.signInTime).toLocaleTimeString()}</div>
+                    </div>
+                    <button class="sign-out-btn" onclick="toggleStaffSignIn('${staff.id}', '${staff.name}', '${staff.department}')">
+                        Sign Out
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function toggleEmergency() {
+            emergencyMode = !emergencyMode;
+            const banner = document.getElementById('emergencyBanner');
+            
+            if (emergencyMode) {
+                banner.style.display = 'block';
+                
+                // Auto-sign out all visitors and staff for safety tracking
+                visitors.forEach(visitor => {
+                    if (!visitor.signedOut) {
+                        visitor.signedOut = true;
+                        visitor.signOutTime = new Date().toISOString();
+                        visitor.signOutReason = 'Emergency Evacuation';
+                    }
+                });
+                
+                signedInStaff.forEach(staff => {
+                    staff.emergencySignOut = new Date().toISOString();
+                });
+                
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
+                
+                // Send emergency evacuation email
+                sendEvacuationEmail();
+                
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+        
+        // Send evacuation email report
+        function sendEvacuationEmail() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const currentVisitors = visitors.filter(v => !v.signedOut);
+            const currentStaff = signedInStaff.filter(s => !s.emergencySignOut);
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `🚨 FIRE EVACUATION REPORT - ${new Date().toLocaleString()}`,
+                body: generateEvacuationReport(currentVisitors, currentStaff)
+            };
+            
+            // Send email (implement your email service here)
+            sendEmail(emailData);
+            
+            showMessage('staffSuccess', `Evacuation report sent to ${EMAIL_CONFIG.evacuationEmail}`);
+        }
+        
+        // Generate evacuation report content
+        function generateEvacuationReport(visitors, staff) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `FIRE EVACUATION REPORT\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `VISITORS IN BUILDING (${visitors.length}):\n`;
+            report += `${'='.repeat(40)}\n`;
+            
+            if (visitors.length === 0) {
+                report += `No visitors currently signed in.\n\n`;
+            } else {
+                visitors.forEach((visitor, index) => {
+                    report += `${index + 1}. ${visitor.name}\n`;
+                    report += `   Company: ${visitor.company || 'N/A'}\n`;
+                    report += `   Host: ${visitor.host}\n`;
+                    report += `   Phone: ${visitor.phone || 'N/A'}\n`;
+                    report += `   Signed In: ${new Date(visitor.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `STAFF IN BUILDING (${staff.length}):\n`;
+            report += `${'='.repeat(40)}\n`;
+            
+            if (staff.length === 0) {
+                report += `No staff currently signed in.\n\n`;
+            } else {
+                staff.forEach((member, index) => {
+                    report += `${index + 1}. ${member.name}\n`;
+                    report += `   Department: ${member.department}\n`;
+                    report += `   Signed In: ${new Date(member.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `TOTAL PEOPLE IN BUILDING: ${visitors.length + staff.length}\n`;
+            report += `\nThis report was automatically generated by the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Check for scheduled email reports
+        function checkScheduledEmails() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+            const today = now.toDateString();
+            
+            // Check if we've already sent today's reports
+            const lastNoonReport = localStorage.getItem('lastNoonReport');
+            const lastEveningReport = localStorage.getItem('lastEveningReport');
+            
+            // Send noon report
+            if (currentTime === EMAIL_CONFIG.dailyReportTime && lastNoonReport !== today) {
+                sendDailyReport('noon');
+                localStorage.setItem('lastNoonReport', today);
+            }
+            
+            // Send evening report
+            if (currentTime === EMAIL_CONFIG.eveningReportTime && lastEveningReport !== today) {
+                sendDailyReport('evening');
+                localStorage.setItem('lastEveningReport', today);
+            }
+        }
+        
+        // Send daily report
+        function sendDailyReport(timeOfDay) {
+            const stats = getVisitorStats();
+            const currentVisitors = visitors.filter(v => !v.signedOut);
+            const currentStaff = signedInStaff;
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `📊 Daily Building Report - ${timeOfDay.toUpperCase()} - ${new Date().toLocaleDateString()}`,
+                body: generateDailyReport(stats, currentVisitors, currentStaff, timeOfDay)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Generate daily report content
+        function generateDailyReport(stats, visitors, staff, timeOfDay) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `DAILY BUILDING REPORT - ${timeOfDay.toUpperCase()}\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `VISITOR STATISTICS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Today: ${stats.today} visitors\n`;
+            report += `This Week: ${stats.thisWeek} visitors\n`;
+            report += `This Month: ${stats.thisMonth} visitors\n`;
+            report += `Currently In Building: ${stats.currentlySignedIn} visitors\n\n`;
+            
+            if (visitors.length > 0) {
+                report += `CURRENT VISITORS (${visitors.length}):\n`;
+                report += `${'='.repeat(30)}\n`;
+                visitors.forEach((visitor, index) => {
+                    report += `${index + 1}. ${visitor.name} (${visitor.company || 'N/A'})\n`;
+                    report += `   Host: ${visitor.host}\n`;
+                    report += `   Since: ${new Date(visitor.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            if (staff.length > 0) {
+                report += `CURRENT STAFF (${staff.length}):\n`;
+                report += `${'='.repeat(30)}\n`;
+                staff.forEach((member, index) => {
+                    report += `${index + 1}. ${member.name} (${member.department})\n`;
+                    report += `   Since: ${new Date(member.signInTime).toLocaleString()}\n\n`;
+                });
+            }
+            
+            report += `TOTAL PEOPLE IN BUILDING: ${visitors.length + staff.length}\n`;
+            report += `\nThis is an automated ${timeOfDay} report from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Send email function (implement with your email service)
+        function sendEmail(emailData) {
+            // ============================================
+            // IMPLEMENT YOUR EMAIL SERVICE HERE
+            // ============================================
+            
+            // OPTION 1: EmailJS (Client-side email service)
+            // Sign up at https://www.emailjs.com/ and get your service ID, template ID, and public key
+            /*
+            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+                to_email: emailData.to,
+                subject: emailData.subject,
+                message: emailData.body,
+                from_name: 'Visitor Kiosk System'
+            }, 'YOUR_PUBLIC_KEY').then(function(response) {
+                console.log('Email sent successfully:', response);
+            }).catch(function(error) {
+                console.error('Email send error:', error);
+            });
+            */
+            
+            // OPTION 2: Your Backend API
+            // Create an API endpoint on your server to handle email sending
+            /*
+            fetch('/api/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer YOUR_API_KEY' // If using API authentication
+                },
+                body: JSON.stringify({
+                    to: emailData.to,
+                    subject: emailData.subject,
+                    body: emailData.body,
+                    from: 'noreply@yourcompany.com'
+                })
+            }).then(response => response.json())
+            .then(data => console.log('Email sent:', data))
+            .catch(error => console.error('Email send error:', error));
+            */
+            
+            // OPTION 3: Webhook Services (Zapier, Make.com, etc.)
+            // Create a webhook that receives the email data and sends emails
+            /*
+            fetch('https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(emailData)
+            }).catch(error => console.error('Webhook error:', error));
+            */
+            
+            // OPTION 4: SMTP.js (Client-side SMTP - requires email credentials)
+            // Download SMTP.js from https://smtpjs.com/
+            /*
+            Email.send({
+                Host: "smtp.yourprovider.com", // Your SMTP server
+                Username: "your-email@yourcompany.com", // Your email
+                Password: "your-app-password", // Your email app password
+                To: emailData.to,
+                From: "noreply@yourcompany.com",
+                Subject: emailData.subject,
+                Body: emailData.body
+            }).then(message => console.log('Email sent:', message));
+            */
+            
+            // FOR TESTING: Console log (remove in production)
+            console.log('Email would be sent:', emailData);
+            console.log('Configure email service in sendEmail() function');
+        }
+        
+        // Check if current date is a UK bank holiday
+        function isUKBankHoliday(date = new Date()) {
+            const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            return UK_BANK_HOLIDAYS.includes(dateString);
+        }
+        
+        // Check if current date is a weekend (Saturday = 6, Sunday = 0)
+        function isWeekend(date = new Date()) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+        
+        // Check if current time is a working day and within working hours
+        function isWorkingTime(date = new Date()) {
+            // Check if it's a weekend
+            if (isWeekend(date)) {
+                return false;
+            }
+            
+            // Check if it's a UK bank holiday
+            if (isUKBankHoliday(date)) {
+                return false;
+            }
+            
+            // Check if it's after working hours (6 PM)
+            const currentTime = date.toTimeString().slice(0, 5); // HH:MM format
+            if (currentTime >= AUTO_SIGNOUT_CONFIG.workingDayEndTime) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Automatic sign-out check
+        function checkAutoSignOut() {
+            if (!AUTO_SIGNOUT_CONFIG.enabled) return;
+            
+            const now = new Date();
+            
+            // If it's not working time, sign out everyone
+            if (!isWorkingTime(now)) {
+                const reason = getSignOutReason(now);
+                performAutoSignOut(reason);
+            }
+        }
+        
+        // Get the reason for automatic sign-out
+        function getSignOutReason(date = new Date()) {
+            if (isWeekend(date)) {
+                const day = date.getDay();
+                return day === 0 ? 'Weekend - Sunday' : 'Weekend - Saturday';
+            }
+            
+            if (isUKBankHoliday(date)) {
+                return 'UK Bank Holiday';
+            }
+            
+            const currentTime = date.toTimeString().slice(0, 5);
+            if (currentTime >= AUTO_SIGNOUT_CONFIG.workingDayEndTime) {
+                return 'After Working Hours (6 PM)';
+            }
+            
+            return 'Non-Working Time';
+        }
+        
+        // Perform automatic sign-out of all visitors and staff
+        function performAutoSignOut(reason) {
+            let signedOutCount = 0;
+            
+            // Sign out all visitors
+            visitors.forEach(visitor => {
+                if (!visitor.signedOut) {
+                    visitor.signedOut = true;
+                    visitor.signOutTime = new Date().toISOString();
+                    visitor.signOutReason = `Auto Sign-Out: ${reason}`;
+                    signedOutCount++;
+                }
+            });
+            
+            // Sign out all staff
+            const staffCount = signedInStaff.length;
+            signedInStaff.forEach(staff => {
+                staff.autoSignOutTime = new Date().toISOString();
+                staff.autoSignOutReason = `Auto Sign-Out: ${reason}`;
+            });
+            
+            if (staffCount > 0) {
+                signedInStaff = []; // Clear all signed-in staff
+                signedOutCount += staffCount;
+            }
+            
+            // Save changes
+            if (signedOutCount > 0) {
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
+                updateSignedInStaffDisplay();
+                
+                // Log the automatic sign-out
+                console.log(`Auto Sign-Out: ${signedOutCount} people signed out - ${reason}`);
+                
+                // Send notification email if enabled
+                if (EMAIL_CONFIG.enabled) {
+                    sendAutoSignOutNotification(signedOutCount, reason);
+                }
+            }
+        }
+        
+        // Send automatic sign-out notification email
+        function sendAutoSignOutNotification(count, reason) {
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `🏢 Automatic Sign-Out Notification - ${new Date().toLocaleDateString()}`,
+                body: generateAutoSignOutReport(count, reason)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Generate automatic sign-out report
+        function generateAutoSignOutReport(count, reason) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `AUTOMATIC SIGN-OUT NOTIFICATION\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `SIGN-OUT DETAILS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Reason: ${reason}\n`;
+            report += `People Signed Out: ${count}\n`;
+            report += `Time: ${timestamp}\n\n`;
+            
+            if (reason.includes('Weekend')) {
+                report += `All visitors and staff have been automatically signed out for the weekend.\n`;
+            } else if (reason.includes('Bank Holiday')) {
+                report += `All visitors and staff have been automatically signed out for the UK bank holiday.\n`;
+            } else if (reason.includes('After Working Hours')) {
+                report += `All visitors and staff have been automatically signed out after 6 PM.\n`;
+            }
+            
+            report += `\nBuilding is now recorded as empty.\n`;
+            report += `This is an automated notification from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        function cleanupOldRecords() {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            // Keep visitor records for exactly 30 days for compliance
+            const oldVisitorCount = visitors.length;
+            visitors = visitors.filter(visitor => 
+                new Date(visitor.signInTime) > thirtyDaysAgo
+            );
+            
+            if (visitors.length !== oldVisitorCount) {
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+            }
+            
+            // Clean up old staff sign-in records (keep only current session)
+            const oldStaffCount = signedInStaff.length;
+            signedInStaff = signedInStaff.filter(staff => 
+                new Date(staff.signInTime) > thirtyDaysAgo
+            );
+            
+            if (signedInStaff.length !== oldStaffCount) {
+                localStorage.setItem('signedInStaff', JSON.stringify(signedInStaff));
+                updateSignedInStaffDisplay();
+            }
+        }
+        
+        // Export visitor data for compliance/backup
+        function exportVisitorData() {
+            const dataToExport = {
+                visitors: visitors,
+                exportDate: new Date().toISOString(),
+                totalRecords: visitors.length,
+                retentionPeriod: '30 days',
+                deviceId: getDeviceId()
+            };
+            
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `visitor-records-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showMessage('staffSuccess', `Exported ${visitors.length} visitor records for compliance backup.`);
+        }
+        
+        // Get visitor statistics
+        function getVisitorStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const thisWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const thisMonth = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            return {
+                total: visitors.length,
+                today: visitors.filter(v => new Date(v.signInTime) >= today).length,
+                thisWeek: visitors.filter(v => new Date(v.signInTime) >= thisWeek).length,
+                thisMonth: visitors.filter(v => new Date(v.signInTime) >= thisMonth).length,
+                currentlySignedIn: visitors.filter(v => !v.signedOut).length
+            };
+        }
+        
+        function showVisitorStats() {
+            const stats = getVisitorStats();
+            const message = `📊 Visitor Statistics:\n\n` +
+                `Today: ${stats.today} visitors\n` +
+                `This Week: ${stats.thisWeek} visitors\n` +
+                `This Month: ${stats.thisMonth} visitors\n` +
+                `Total Records: ${stats.total} visitors\n` +
+                `Currently Signed In: ${stats.currentlySignedIn} visitors`;
+            
+            showMessage('staffSuccess', message.replace(/\n/g, ' | '));
+        }
+        
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'KIOSK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+        
+        // Security Functions
+        function isSystemLockedOut() {
+            if (!SECURITY_CONFIG.enabled) return false;
+            
+            const now = new Date();
+            if (lockoutStatus.lockoutEnd && new Date(lockoutStatus.lockoutEnd) > now) {
+                return true;
+            }
+            
+            // Clear expired lockout
+            if (lockoutStatus.lockoutEnd && new Date(lockoutStatus.lockoutEnd) <= now) {
+                lockoutStatus = {};
+                localStorage.setItem('lockoutStatus', JSON.stringify(lockoutStatus));
+                hideLockoutMessage();
+            }
+            
+            return false;
+        }
+        
+        function recordFailedPinAttempt(pin) {
+            if (!SECURITY_CONFIG.enabled) {
+                showMessage('staffError', 'Invalid PIN. Please try again or search for your name below.', true);
+                return;
+            }
+            
+            const now = new Date();
+            const deviceId = getDeviceId();
+            
+            // Initialize attempts for this device if not exists
+            if (!pinAttempts[deviceId]) {
+                pinAttempts[deviceId] = {
+                    count: 0,
+                    lastAttempt: now.toISOString(),
+                    attempts: []
+                };
+            }
+            
+            // Record this attempt
+            pinAttempts[deviceId].count++;
+            pinAttempts[deviceId].lastAttempt = now.toISOString();
+            pinAttempts[deviceId].attempts.push({
+                pin: pin,
+                timestamp: now.toISOString(),
+                ip: 'kiosk-device' // In production, get actual IP
+            });
+            
+            localStorage.setItem('pinAttempts', JSON.stringify(pinAttempts));
+            
+            const remainingAttempts = SECURITY_CONFIG.maxPinAttempts - pinAttempts[deviceId].count;
+            
+            if (pinAttempts[deviceId].count >= SECURITY_CONFIG.maxPinAttempts) {
+                // Lock out the system
+                lockoutStatus = {
+                    lockedOut: true,
+                    lockoutStart: now.toISOString(),
+                    lockoutEnd: new Date(now.getTime() + (SECURITY_CONFIG.lockoutDuration * 60000)).toISOString(),
+                    deviceId: deviceId,
+                    totalAttempts: pinAttempts[deviceId].count
+                };
+                
+                localStorage.setItem('lockoutStatus', JSON.stringify(lockoutStatus));
+                
+                // Send security alert email
+                sendSecurityAlert();
+                
+                showLockoutMessage(`System locked due to ${SECURITY_CONFIG.maxPinAttempts} failed PIN attempts. Try again in ${SECURITY_CONFIG.lockoutDuration} minutes.`);
+            } else {
+                showMessage('staffError', `Invalid PIN. ${remainingAttempts} attempts remaining before lockout.`, true);
+            }
+        }
+        
+        function resetPinAttempts() {
+            const deviceId = getDeviceId();
+            if (pinAttempts[deviceId]) {
+                delete pinAttempts[deviceId];
+                localStorage.setItem('pinAttempts', JSON.stringify(pinAttempts));
+            }
+            hideLockoutMessage();
+        }
+        
+        function checkLockoutStatus() {
+            if (isSystemLockedOut()) {
+                const lockoutEnd = new Date(lockoutStatus.lockoutEnd);
+                const remainingTime = Math.ceil((lockoutEnd - new Date()) / 60000);
+                showLockoutMessage(`System locked due to multiple failed PIN attempts. Try again in ${remainingTime} minutes.`);
+                
+                // Disable PIN input
+                const pinInput = document.getElementById('pinInput');
+                if (pinInput) {
+                    pinInput.disabled = true;
+                    pinInput.placeholder = 'System Locked';
+                }
+            }
+        }
+        
+        function showLockoutMessage(message) {
+            const lockoutElement = document.getElementById('lockoutMessage');
+            if (lockoutElement) {
+                lockoutElement.textContent = message;
+                lockoutElement.style.display = 'block';
+            }
+            
+            // Disable PIN input
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) {
+                pinInput.disabled = true;
+                pinInput.placeholder = 'System Locked';
+            }
+        }
+        
+        function hideLockoutMessage() {
+            const lockoutElement = document.getElementById('lockoutMessage');
+            if (lockoutElement) {
+                lockoutElement.style.display = 'none';
+            }
+            
+            // Re-enable PIN input
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) {
+                pinInput.disabled = false;
+                pinInput.placeholder = 'Enter 4-digit PIN';
+            }
+        }
+        
+        function sendSecurityAlert() {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const deviceId = getDeviceId();
+            const attempts = pinAttempts[deviceId] || {};
+            
+            const emailData = {
+                to: SECURITY_CONFIG.adminEmail,
+                subject: `🚨 SECURITY ALERT: Kiosk System Lockout - ${new Date().toLocaleString()}`,
+                body: generateSecurityAlertReport(attempts)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        function generateSecurityAlertReport(attempts) {
+            const timestamp = new Date().toLocaleString();
+            const deviceId = getDeviceId();
+            
+            let report = `SECURITY ALERT - KIOSK SYSTEM LOCKOUT\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${deviceId}\n\n`;
+            
+            report += `LOCKOUT DETAILS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Failed PIN Attempts: ${attempts.count || 0}\n`;
+            report += `Lockout Duration: ${SECURITY_CONFIG.lockoutDuration} minutes\n`;
+            report += `Last Attempt: ${attempts.lastAttempt ? new Date(attempts.lastAttempt).toLocaleString() : 'N/A'}\n\n`;
+            
+            if (attempts.attempts && attempts.attempts.length > 0) {
+                report += `ATTEMPT HISTORY:\n`;
+                report += `${'='.repeat(30)}\n`;
+                attempts.attempts.forEach((attempt, index) => {
+                    report += `${index + 1}. PIN: ${attempt.pin} at ${new Date(attempt.timestamp).toLocaleString()}\n`;
+                });
+                report += `\n`;
+            }
+            
+            report += `RECOMMENDED ACTIONS:\n`;
+            report += `- Review physical security around the kiosk device\n`;
+            report += `- Check for unauthorized access attempts\n`;
+            report += `- Consider changing staff PINs if compromised\n`;
+            report += `- Monitor for additional security incidents\n\n`;
+            
+            report += `This is an automated security alert from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Admin Notice Functions
+        function initializeAdminNotice() {
+            if (ADMIN_CONFIG.noticesEnabled && ADMIN_CONFIG.currentNotice) {
+                showAdminNotice(ADMIN_CONFIG.currentNotice, ADMIN_CONFIG.noticeType);
+            }
+        }
+        
+        function showAdminNotice(message, type = 'info') {
+            const noticeElement = document.getElementById('adminNotice');
+            const textElement = document.getElementById('noticeText');
+            
+            if (noticeElement && textElement) {
+                textElement.textContent = message;
+                noticeElement.className = `admin-notice ${type}`;
+                noticeElement.style.display = 'block';
+                
+                // Auto-dismiss info notices after 30 seconds
+                if (type === 'info') {
+                    setTimeout(() => {
+                        dismissNotice();
+                    }, 30000);
+                }
+            }
+        }
+        
+        function dismissNotice() {
+            const noticeElement = document.getElementById('adminNotice');
+            if (noticeElement) {
+                noticeElement.style.display = 'none';
+            }
+        }
+        
+        // Example admin notice configurations (update these as needed):
+        // ADMIN_CONFIG.noticesEnabled = true;
+        // ADMIN_CONFIG.currentNotice = 'Fire drill scheduled for today at 2 PM. Please follow evacuation procedures.';
+        // ADMIN_CONFIG.noticeType = 'warning';
+        
+        // ADMIN_CONFIG.currentNotice = 'COVID-19 restrictions: Please maintain social distancing and wear masks in common areas.';
+        // ADMIN_CONFIG.noticeType = 'info';
+        
+
+        
+        // Handle modal clicks outside content
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        }
+        
+        // SharePoint Integration Functions
+        
+        // Check if it's time for monthly SharePoint upload
+        function checkSharePointUpload() {
+            if (!SHAREPOINT_CONFIG.enabled) return;
+            
+            const now = new Date();
+            const currentDay = now.getDate();
+            const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            // Check if it's the scheduled upload day and time
+            if (currentDay === SHAREPOINT_CONFIG.uploadDay && currentTime === SHAREPOINT_CONFIG.uploadTime) {
+                const lastUploadKey = `lastSharePointUpload_${currentYear}_${currentMonth}`;
+                const lastUpload = localStorage.getItem(lastUploadKey);
+                
+                // Only upload once per month
+                if (!lastUpload) {
+                    uploadMonthlyDataToSharePoint();
+                    localStorage.setItem(lastUploadKey, now.toISOString());
+                }
+            }
+        }
+        
+        // Upload previous month's data to SharePoint
+        async function uploadMonthlyDataToSharePoint() {
+            try {
+                const now = new Date();
+                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const monthName = lastMonth.toLocaleString('en-US', { month: 'long' });
+                const year = lastMonth.getFullYear();
+                
+                // Get previous month's data
+                const monthlyData = getMonthlyData(lastMonth);
+                
+                // Upload visitor data
+                if (monthlyData.visitors.length > 0) {
+                    await uploadVisitorDataToSharePoint(monthlyData.visitors, monthName, year);
+                }
+                
+                // Upload staff data
+                if (monthlyData.staff.length > 0) {
+                    await uploadStaffDataToSharePoint(monthlyData.staff, monthName, year);
+                }
+                
+                // Send confirmation email
+                sendSharePointUploadConfirmation(monthlyData, monthName, year);
+                
+                console.log(`SharePoint upload completed for ${monthName} ${year}`);
+                
+            } catch (error) {
+                console.error('SharePoint upload error:', error);
+                sendSharePointErrorNotification(error);
+            }
+        }
+        
+        // Get data for a specific month
+        function getMonthlyData(targetMonth) {
+            const startOfMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+            const endOfMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0, 23, 59, 59);
+            
+            const monthlyVisitors = visitors.filter(visitor => {
+                const signInDate = new Date(visitor.signInTime);
+                return signInDate >= startOfMonth && signInDate <= endOfMonth;
+            });
+            
+            // Get staff data from localStorage history (you may need to implement staff history tracking)
+            const monthlyStaff = getMonthlyStaffData(startOfMonth, endOfMonth);
+            
+            return {
+                visitors: monthlyVisitors,
+                staff: monthlyStaff,
+                month: targetMonth.toLocaleString('en-US', { month: 'long' }),
+                year: targetMonth.getFullYear(),
+                totalVisitors: monthlyVisitors.length,
+                totalStaffSessions: monthlyStaff.length
+            };
+        }
+        
+        // Get monthly staff data (implement based on your staff tracking needs)
+        function getMonthlyStaffData(startDate, endDate) {
+            // This function should return staff sign-in/out data for the month
+            // You may need to implement staff history tracking in localStorage
+            const staffHistory = JSON.parse(localStorage.getItem('staffHistory') || '[]');
+            
+            return staffHistory.filter(session => {
+                const sessionDate = new Date(session.signInTime);
+                return sessionDate >= startDate && sessionDate <= endDate;
+            });
+        }
+        
+        // Upload visitor data to SharePoint list
+        async function uploadVisitorDataToSharePoint(visitorData, monthName, year) {
+            const accessToken = await getSharePointAccessToken();
+            
+            for (const visitor of visitorData) {
+                const listItem = {
+                    Title: `${visitor.name} - ${monthName} ${year}`,
+                    VisitorName: visitor.name,
+                    VisitorEmail: visitor.email,
+                    VisitorPhone: visitor.phone || '',
+                    VisitorCompany: visitor.company || '',
+                    HostName: visitor.host,
+                    VisitPurpose: visitor.purpose || '',
+                    SignInTime: visitor.signInTime,
+                    SignOutTime: visitor.signOutTime || '',
+                    Month: monthName,
+                    Year: year,
+                    DeviceId: visitor.deviceId || getDeviceId(),
+                    Duration: calculateVisitDuration(visitor),
+                    Status: visitor.signedOut ? 'Completed' : 'In Progress'
+                };
+                
+                await createSharePointListItem(SHAREPOINT_CONFIG.visitorListName, listItem, accessToken);
+            }
+        }
+        
+        // Upload staff data to SharePoint list
+        async function uploadStaffDataToSharePoint(staffData, monthName, year) {
+            const accessToken = await getSharePointAccessToken();
+            
+            for (const staffSession of staffData) {
+                const listItem = {
+                    Title: `${staffSession.name} - ${monthName} ${year}`,
+                    StaffName: staffSession.name,
+                    Department: staffSession.department || '',
+                    SignInTime: staffSession.signInTime,
+                    SignOutTime: staffSession.signOutTime || staffSession.autoSignOutTime || '',
+                    Month: monthName,
+                    Year: year,
+                    DeviceId: staffSession.deviceId || getDeviceId(),
+                    Duration: calculateStaffDuration(staffSession),
+                    SignOutReason: staffSession.signOutReason || staffSession.autoSignOutReason || 'Manual'
+                };
+                
+                await createSharePointListItem(SHAREPOINT_CONFIG.staffListName, listItem, accessToken);
+            }
+        }
+        
+        // Get SharePoint access token
+        async function getSharePointAccessToken() {
+            // This should return a valid access token for SharePoint
+            // Implementation depends on your authentication method
+            const token = localStorage.getItem('sharePointAccessToken');
+            
+            if (!token) {
+                throw new Error('SharePoint access token not found. Please authenticate.');
+            }
+            
+            return token;
+        }
+        
+        // Create item in SharePoint list
+        async function createSharePointListItem(listName, itemData, accessToken) {
+            const siteUrl = SHAREPOINT_CONFIG.siteUrl;
+            const apiUrl = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-RequestDigest': await getRequestDigest(accessToken)
+                },
+                body: JSON.stringify(itemData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`SharePoint API error: ${response.status} ${response.statusText}`);
+            }
+            
+            return await response.json();
+        }
+        
+        // Get SharePoint request digest
+        async function getRequestDigest(accessToken) {
+            const siteUrl = SHAREPOINT_CONFIG.siteUrl;
+            const response = await fetch(`${siteUrl}/_api/contextinfo`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.FormDigestValue;
+            }
+            
+            throw new Error('Failed to get SharePoint request digest');
+        }
+        
+        // Calculate visit duration
+        function calculateVisitDuration(visitor) {
+            if (!visitor.signOutTime) return 'Ongoing';
+            
+            const signIn = new Date(visitor.signInTime);
+            const signOut = new Date(visitor.signOutTime);
+            const durationMs = signOut - signIn;
+            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return `${hours}h ${minutes}m`;
+        }
+        
+        // Calculate staff session duration
+        function calculateStaffDuration(staffSession) {
+            const signOutTime = staffSession.signOutTime || staffSession.autoSignOutTime;
+            if (!signOutTime) return 'Ongoing';
+            
+            const signIn = new Date(staffSession.signInTime);
+            const signOut = new Date(signOutTime);
+            const durationMs = signOut - signIn;
+            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return `${hours}h ${minutes}m`;
+        }
+        
+        // Send SharePoint upload confirmation email
+        function sendSharePointUploadConfirmation(monthlyData, monthName, year) {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `📊 SharePoint Upload Complete - ${monthName} ${year} Building Attendance`,
+                body: generateSharePointUploadReport(monthlyData, monthName, year)
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Generate SharePoint upload report
+        function generateSharePointUploadReport(monthlyData, monthName, year) {
+            const timestamp = new Date().toLocaleString();
+            
+            let report = `SHAREPOINT UPLOAD CONFIRMATION\n`;
+            report += `Generated: ${timestamp}\n`;
+            report += `Device: ${getDeviceId()}\n\n`;
+            
+            report += `UPLOAD DETAILS:\n`;
+            report += `${'='.repeat(30)}\n`;
+            report += `Month: ${monthName} ${year}\n`;
+            report += `Visitor Records Uploaded: ${monthlyData.totalVisitors}\n`;
+            report += `Staff Session Records Uploaded: ${monthlyData.totalStaffSessions}\n`;
+            report += `SharePoint Site: ${SHAREPOINT_CONFIG.siteUrl}\n`;
+            report += `Visitor List: ${SHAREPOINT_CONFIG.visitorListName}\n`;
+            report += `Staff List: ${SHAREPOINT_CONFIG.staffListName}\n\n`;
+            
+            report += `DATA SUMMARY:\n`;
+            report += `${'='.repeat(30)}\n`;
+            
+            if (monthlyData.visitors.length > 0) {
+                const companies = [...new Set(monthlyData.visitors.map(v => v.company).filter(c => c))];
+                const purposes = [...new Set(monthlyData.visitors.map(v => v.purpose).filter(p => p))];
+                
+                report += `Unique Companies: ${companies.length}\n`;
+                report += `Visit Purposes: ${purposes.join(', ')}\n`;
+            }
+            
+            report += `\nAll data has been successfully uploaded to SharePoint for compliance and reporting.\n`;
+            report += `This is an automated notification from the Visitor Kiosk System.`;
+            
+            return report;
+        }
+        
+        // Send SharePoint error notification
+        function sendSharePointErrorNotification(error) {
+            if (!EMAIL_CONFIG.enabled) return;
+            
+            const emailData = {
+                to: EMAIL_CONFIG.evacuationEmail,
+                subject: `❌ SharePoint Upload Error - ${new Date().toLocaleDateString()}`,
+                body: `SharePoint Upload Error Report\n\nError: ${error.message}\nTime: ${new Date().toLocaleString()}\nDevice: ${getDeviceId()}\n\nPlease check SharePoint configuration and network connectivity.`
+            };
+            
+            sendEmail(emailData);
+        }
+        
+        // Initialize app when page loads
+        init();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993bd80d5175a12d',t:'MTc2MTMzMzc1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
