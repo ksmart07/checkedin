@@ -576,7 +576,7 @@
         </div>
         
         <header class="header">
-            <h1>Welcome to Our Facility</h1>
+            <h1>Welcome to ABS</h1>
             <div class="date-time" id="dateTime"></div>
         </header>
         
@@ -818,27 +818,18 @@
         let signedInStaff = JSON.parse(localStorage.getItem('signedInStaff') || '[]');
         let emergencyMode = false;
         
-        // ============================================
-        // CONFIGURATION SECTION - EDIT THESE VALUES
-        // ============================================
-        
-        // Microsoft 365 Integration Configuration
-        // To enable M365 directory search, you need to:
-        // 1. Register an app in Azure AD (https://portal.azure.com)
-        // 2. Grant Microsoft Graph API permissions (User.Read.All)
-        // 3. Get your Tenant ID and Client ID from Azure AD
         const M365_CONFIG = {
-            tenantId: '', // REPLACE: Your M365 Tenant ID (e.g., 'your-company.onmicrosoft.com')
-            clientId: '', // REPLACE: Your App Registration Client ID (e.g., '12345678-1234-1234-1234-123456789012')
+            tenantId: 'a495e860-276d-4bf7-9e2c-cdbcca566668', // REPLACE: Your M365 Tenant ID (e.g., 'your-company.onmicrosoft.com')
+            clientId: '9193d1d3-bd8a-4437-b11b-8f23d3c53020', // REPLACE: Your App Registration Client ID (e.g., '12345678-1234-1234-1234-123456789012')
             apiEndpoint: 'https://graph.microsoft.com/v1.0/users',
-            enabled: false // CHANGE TO TRUE: Set to true after completing M365 setup
+            enabled: true // CHANGE TO TRUE: Set to true after completing M365 setup
         };
         
         // Email Configuration for Reports and Alerts
         // Replace with your actual email addresses and SMTP settings
         const EMAIL_CONFIG = {
-            evacuationEmail: 'admin@yourcompany.com', // REPLACE: Email for emergency evacuation reports
-            securityEmail: 'security@yourcompany.com', // REPLACE: Email for security alerts (PIN lockouts)
+            evacuationEmail: 'admin@allbestsolutions.co.uk', // REPLACE: Email for emergency evacuation reports
+            securityEmail: 'admin@allbestsolutions.co.uk', // REPLACE: Email for security alerts (PIN lockouts)
             dailyReportTime: '12:00', // CUSTOMIZE: Noon daily report (24-hour format)
             eveningReportTime: '18:00', // CUSTOMIZE: 6 PM daily report (24-hour format)
             enabled: true // CHANGE TO FALSE: Set to false to disable all email reports
@@ -857,7 +848,7 @@
         const SECURITY_CONFIG = {
             maxPinAttempts: 3, // CUSTOMIZE: Maximum PIN attempts before lockout (recommended: 3-5)
             lockoutDuration: 30, // CUSTOMIZE: Lockout duration in minutes (recommended: 15-60)
-            adminEmail: 'admin@yourcompany.com', // REPLACE: Admin email for security alerts
+            adminEmail: 'admin@allbestsolutions.co.uk', // REPLACE: Admin email for security alerts
             enabled: true // CHANGE TO FALSE: Set to false to disable security lockout
         };
         
@@ -2114,3 +2105,4 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993bcbc9c41bbd9b',t:'MTc2MTMzMzI1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
